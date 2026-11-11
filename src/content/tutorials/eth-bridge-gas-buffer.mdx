@@ -1,0 +1,28 @@
+---
+title: Bridge ETH to Base and keep a gas buffer
+description: A recorded session moves most of an ETH balance to Base and leaves ETH on Ethereum for gas.
+---
+
+Official video: [Prepare an ETH Bridge to Base and Keep a Gas Buffer](https://www.youtube.com/watch?v=DTFiRHuEKTk).
+
+<Video src="https://www.youtube.com/watch?v=DTFiRHuEKTk" title="Prepare an ETH Bridge to Base and Keep a Gas Buffer" />
+
+This page is based on the official video title and description, plus Aomi's public docs. I could not get captions for this recording, so the exact on-screen clicks were not independently verified.
+
+The official description says this is a silent product recording, and that the prompt and responses are visible on screen. It shows balance checks, route preparation and the simulated transaction staged for wallet approval.
+
+Aomi's own [docs introduction](https://aomi.dev/docs) uses the same example request: "Move most of my ETH over to Base, but leave enough on mainnet for gas." Across handles the bridge and preserves a gas buffer.
+
+
+## How to try this in the portal
+
+These steps come from the [Portal](https://aomi.dev/docs/trade/portal) guide.
+
+1. Open [chat.aomi.dev](https://chat.aomi.dev).
+2. Connect a wallet or sign in when you are ready to transact.
+3. Set the network in the header to the chain used in the recording.
+4. Type the same kind of request the video describes.
+5. Review the simulation in the chat, then sign in your wallet only if you want to send it. Rejecting the prompt does nothing onchain.
+
+
+Use Ethereum as the starting network, then ask Aomi to move most of the ETH to Base while leaving enough on mainnet for gas. I did not re-run this bridge or confirm the route shown in the recording.

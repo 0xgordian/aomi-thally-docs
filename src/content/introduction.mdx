@@ -1,0 +1,67 @@
+---
+title: Build with Aomi
+description: Use Aomi to turn plain-language instructions into simulated, wallet-signed transactions across EVM and Solana.
+mode: home
+---
+
+<Hero
+  title="Build with Aomi"
+  subtitle="Aomi is the execution harness for onchain AI. Turn plain-language instructions into real transactions against protocols and smart contracts across EVM and Solana."
+  primaryLabel="Get started"
+  primaryHref="/quickstart"
+  secondaryLabel="Practical guide"
+  secondaryHref="/guides/first-app"
+/>
+
+## What Aomi does
+
+Aomi turns plain-language instructions into real transactions. Every transaction follows one pipeline: build, simulate, sign, broadcast. Transactions are composed against protocol contract interfaces, rehearsed on a fork of live chain state, and only then handed to a wallet for signature. Signing is non-custodial. The agent proposes the transaction, and the user's key signs it.
+
+A transaction that fails simulation never reaches a signature.
+
+## The execution pipeline
+
+The pipeline every chat-initiated action passes through:
+
+1. **Build:** Compose transactions against protocol contract interfaces
+2. **Simulate:** Rehearse on a forked copy of live chain state
+3. **Sign:** Non-custodial wallet signature (user controls the key)
+4. **Broadcast:** Submit to the network
+
+The runtime forks every supported chain from a full node and serves it with ~200ms latency.
+
+## Three ways to use Aomi
+
+**Portal:** Connect a wallet at [chat.aomi.dev](https://chat.aomi.dev) and trade by chat. No install needed.
+
+**CLI:** Install the terminal client to chat, simulate, and sign from your command line. Guest mode requires no API key.
+
+**SDK:** Integrate with TypeScript using `@aomi-labs/client`. Call Agent or Pipeline APIs from Node.js or browsers.
+
+## Who this is for
+
+These docs are for developers who want to integrate Aomi into their applications or build custom Apps as plugins. You will install the SDK and CLI, run your first agent turns, and understand the execution pipeline.
+
+Start with [the quickstart](/quickstart). Then use [the practical guide](/guides/first-app) to deploy your first custom App.
+
+## Non-custodial by design
+
+Aomi constructs and coordinates transactions while assets and signing authority remain within your existing wallet infrastructure. Aomi never requires custody of client funds or access to private keys. Wallets approve every transaction before it reaches the network.
+
+## Supported chains
+
+Aomi supports 10+ chains across EVM and Solana:
+- Ethereum, Arbitrum One, OP Mainnet, Base, Polygon
+- Linea, Monad, Robinhood Chain, MegaETH, Solana
+
+Each chain is forked from a full node for simulation before any transaction reaches signature.
+
+## Requirements and evidence
+
+The examples target Node.js v18+ with TypeScript support. Testing was performed on Linux with Node.js v22.23.4. Package versions verified:
+- `@aomi-labs/client`: 0.11.2
+- `@aomi-labs/cli`: 0.2.0
+
+The Rust SDK for building custom Apps requires Rust 1.85+ (2024 edition).
+
+Reference: [Aomi documentation](https://aomi.dev/docs)

@@ -1,0 +1,100 @@
+{
+  "theme": "default",
+  "appearance": {
+    "contentIcons": "accent"
+  },
+  "markdown": {
+    "enabled": true
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "locales": [
+      {
+        "code": "en",
+        "label": "English"
+      }
+    ]
+  },
+  "navbar": {
+    "primary": {
+      "label": "Get started",
+      "href": "/quickstart"
+    }
+  },
+  "tabs": [
+    {
+      "tab": "Guide",
+      "groups": [
+        {
+          "group": "Get started with Aomi",
+          "pages": [
+            "introduction",
+            "quickstart",
+            "guides/first-app"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "Tutorials",
+      "groups": [
+        {
+          "group": "Start here",
+          "pages": [
+            "tutorials",
+            "tutorials/prediction-market-sdk",
+            "tutorials/what-is-aomi",
+            "tutorials/claude-with-and-without-aomi"
+          ]
+        },
+        {
+          "group": "Trades and the portal",
+          "pages": [
+            "tutorials/eth-bridge-gas-buffer",
+            "tutorials/msol-to-jitosol",
+            "tutorials/sol-marinade",
+            "tutorials/swap-aave-orchestrator",
+            "tutorials/multi-step-defi",
+            "tutorials/stock-basket-robinhood",
+            "tutorials/stock-basket-quick"
+          ]
+        },
+        {
+          "group": "MCP and agents",
+          "pages": [
+            "tutorials/mcp-claude-code",
+            "tutorials/custom-mcp"
+          ]
+        },
+        {
+          "group": "Build and apps",
+          "pages": [
+            "tutorials/aomi-build",
+            "tutorials/hoodit-build",
+            "tutorials/fuzz-arc-studio",
+            "tutorials/stablefx-arc",
+            "tutorials/delta-neutral-bot",
+            "tutorials/stratex",
+            "tutorials/fanforge",
+            "tutorials/molinar",
+            "tutorials/khalani-swap",
+            "tutorials/telegram"
+          ]
+        },
+        {
+          "group": "Earlier product recordings",
+          "pages": [
+            "tutorials/connect-wallet",
+            "tutorials/sushi-swap",
+            "tutorials/bridge-polygon",
+            "tutorials/ens-registration",
+            "tutorials/switch-apps"
+          ]
+        }
+      ]
+    }
+  ],
+  "ai": {
+    "chat": true
+  }
+}

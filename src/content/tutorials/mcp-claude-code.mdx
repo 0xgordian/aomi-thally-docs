@@ -1,0 +1,63 @@
+---
+title: Use Aomi MCP with Claude Code
+description: See Claude Code connect to Aomi through MCP and prepare a USDC to ETH swap, simulated before signing.
+---
+
+Official video: [Use Aomi MCP with Claude Code to Prepare a Token Swap](https://www.youtube.com/watch?v=uekuY1covEU). The description points to current connection instructions at [aomi.dev/docs/guides/mcp](https://aomi.dev/docs/guides/mcp).
+
+<Video src="https://www.youtube.com/watch?v=uekuY1covEU" title="Use Aomi MCP with Claude Code to Prepare a Token Swap" />
+
+Auto-captions on this video sometimes say "MEV" or "Cloud Code" where the speaker means Aomi and Claude Code. The guide below uses the official title, the captions (corrected only where the context is obvious), and the current MCP docs.
+
+## What the video shows
+
+The demo prepares a swap of 15 USDC to ETH on Ethereum mainnet. The speaker's preview account has 24 USDC. Instead of the web portal, the request goes through Aomi's MCP, "the same interface a Claude Code agent would use."
+
+According to the captions, Aomi then:
+
+1. Activates the LiFi swap skill (the captions later mention an approved LiFi spender)
+2. Confirms the Ethereum mainnet context
+3. Fetches a fresh quote
+4. Simulates the entire transaction onchain
+
+The simulation result shown in the recording includes the 15 USDC input, the expected output, the Aomi fee and the gas cost. It passes. Two transactions are staged: an approval for the exact 15 USDC LiFi spender, and the swap itself. A link sends the user back to the portal to confirm. The wallet still has to approve. If either transaction would fail, the simulation stops and explains why.
+
+## How to connect MCP today
+
+The current docs use versioned Streamable HTTP URLs. Older paths such as `/api/mcp` are retired.
+
+For Claude Code, the [MCP guide](https://aomi.dev/docs/guides/mcp) says:
+
+```bash
+claude mcp add --transport http aomi-agent   https://chat.aomi.dev/v1/agent/mcp
+```
+
+Then run `/mcp` and authenticate `aomi-agent` if the browser flow does not start on its own.
+
+To also use Pipeline MCP (discover apps and run multi-step programs):
+
+```bash
+codex mcp add aomi-pipeline   --url https://chat.aomi.dev/v1/pipeline/mcp
+```
+
+Cursor uses a config block:
+
+```json
+{
+  "mcpServers": {
+    "aomi-agent": {
+      "url": "https://chat.aomi.dev/v1/agent/mcp"
+    }
+  }
+}
+```
+
+After you authorize the server, ask the client to use Aomi. The docs example is:
+
+```text
+Use Aomi to read my USDC balance on Base, then explain the result.
+```
+
+For a swap like the video, you would ask it to prepare a USDC to ETH swap and then review the simulation and any pending wallet Action in the portal. OAuth authorizes the MCP client. It does not give the client your private key. A pending wallet Action still follows your wallet and approval policy.
+
+I did not re-run this swap, and I cannot confirm the exact MCP tool names shown in the recording versus the current `aomi_chat` / `aomi_check` tool list.

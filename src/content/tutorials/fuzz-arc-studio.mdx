@@ -1,0 +1,29 @@
+---
+title: Aomi Fuzz for Arc Studio
+description: Find and reproduce a vault bug as a short call sequence on an isolated Arc fork.
+---
+
+Official video: [Aomi Fuzz for Arc Studio | Find and Reproduce Smart Contract Bugs](https://www.youtube.com/watch?v=dPFkidzbODo).
+
+<Video src="https://www.youtube.com/watch?v=dPFkidzbODo" title="Aomi Fuzz for Arc Studio, Find and Reproduce Smart Contract Bugs" />
+
+The official description says this recording uses local fixture responses to demonstrate the workflow, and that the testing workflow does not sign or broadcast transactions.
+
+## What the video shows
+
+Aomi's agentic fuzzer does stateful attack exploration on smart contracts. An agent proposes hypotheses. A deterministic campaign engine then executes ordered call sequences on an isolated fork. Only confirmed violations are reported.
+
+The example is a small vault in Arc Studio. Intended behavior is that a deposit credits the caller, but withdraw transfers without checking that credit. The exploit depends on ordering: someone funds the vault, then a stranger drains it. In the official description, that is Alice depositing and Bob withdrawing her funds. The finding is reduced to two calls and checked twice.
+
+The prototype connects to an Arc Studio workspace, reads compiled contracts, and lets Aomi explore attack sequences on an isolated Arc fork. Developers can review the execution trace and reproduction evidence.
+
+## How to look at it
+
+The video description gives the prototype URL and a requirement:
+
+1. Open [arc-studio-fuzz.vercel.app](https://arc-studio-fuzz.vercel.app).
+2. You need an Arc Studio token to connect.
+3. Load a compiled contract from an Arc Studio workspace.
+4. Review any confirmed finding, including the short reproduction sequence. Nothing in this workflow should sign or broadcast a transaction.
+
+I did not connect an Arc Studio workspace or reproduce the vault bug myself. Treat the Alice/Bob vault as the recorded example, not as a claim about a specific live contract.

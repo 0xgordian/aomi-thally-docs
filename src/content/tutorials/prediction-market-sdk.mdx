@@ -1,0 +1,109 @@
+---
+title: Build a prediction market with the Aomi SDK
+description: Gordian walks through Kuroko, an AI trading terminal for Polymarket built with the Aomi SDK and widget.
+---
+
+This is Gordian Etim's public tutorial: [Building an AI-Native Prediction Market in 30 Minutes](https://youtu.be/PUqQPeWtUYM). It is also written up in his public article, [Building an Onchain AI-Native Agent for Prediction Markets Using Aomi's SDK and Widget](https://gordian-etim.notion.site/Building-an-Onchain-AI-Native-Agent-for-Prediction-Markets-Using-Aomi-s-SDK-and-Widget-74b6ec38e17e403cb71c894b629df2c0).
+
+<Video src="https://youtu.be/PUqQPeWtUYM" title="Building an AI-Native Prediction Market in 30 Minutes, Aomi SDK Tutorial" />
+
+Auto-captions on this video are imperfect. Names like Kuroko and "widget" are sometimes mis-heard. The steps below follow the captions, the official video description, and the public article. Anything I could not verify is marked.
+
+## What the video shows
+
+Kuroko is a trading terminal for [Polymarket](https://polymarket.com). In the recording, a live market is open, with separate order books, prices and liquidity for each range. The point of the product is to replace the slow manual loop of checking each bracket, deciding, and signing a single bid.
+
+Gordian describes Aomi as the execution layer under the product: it lets a trading terminal, wallet or similar app add an agent that can run onchain transactions from natural language.
+
+He shows a connected Aomi widget. Asking for wallet balance and positions triggers a small set of background calls (chain context, wallet balance, and recent transaction data) and returns an Ethereum balance overview.
+
+In Kuroko itself he shows:
+
+- A customized widget, including slash commands in the UI
+- A market request, including a Manchester City Premier League market shown at 49%
+- Wallet connection via email
+- Browsing markets by category (elections, crypto, sport, economics, technology, and the world)
+- Cards with the question, current probability and volume, plus shares, entry price, cost and projected return before you commit
+- Research against live Polymarket data, then a trade simulation before execution
+
+He closes by pointing developers to the SDK and to [aomi.dev/docs](https://aomi.dev/docs).
+
+The public article adds architecture detail that the captions only hint at. Kuroko uses three layers:
+
+1. The React widget (`AomiFrame` in the article) pointed at a Next.js proxy, not directly at the Aomi API
+2. The `/api/aomi` proxy, which injects live Polymarket data into the system prompt, then forwards the request
+3. Execution: the model can return a `trade_card` JSON payload, a `TradeCard` renders it, and on confirm the flow is Aomi Session, then EIP-712, then Para signing, then the Polymarket CLOB
+
+The article also says Kuroko can run stop-loss and take-profit rules through the user's wallet when they are away. The captions do not walk through that path in detail, so treat it as described in the article, not as a fully narrated click-through in the video.
+
+## How to build a similar integration today
+
+Current public docs use slightly different package names than the May 2026 article. Use the docs for commands, and treat the article's `AomiFrame` / `/api/aomi` example as what Kuroko used at the time.
+
+### 1. Install the TypeScript client
+
+From the [Client SDK](https://aomi.dev/docs/integrate/client-sdk) guide:
+
+```bash
+npm install @aomi-labs/client
+npm install --save-dev tsx @types/node
+export AOMI_BASE_URL="https://chat.aomi.dev"
+```
+
+The docs recorded npm `latest` as SDK `0.11.2` on October 30, 2026. Confirm the current version with `npm view @aomi-labs/client version` before you ship.
+
+### 2. Run a guest Agent turn
+
+The same guide's example, in guest mode (no API key):
+
+```ts
+import { Aomi, type MessageEvent } from "@aomi-labs/client";
+
+const aomi = new Aomi({ baseUrl: process.env.AOMI_BASE_URL! });
+const sessionId = crypto.randomUUID();
+
+await aomi.agent.run("Remember that my demo color is cobalt.", { sessionId });
+const result = await aomi.agent.run("Reply with only my demo color.", { sessionId });
+```
+
+Reuse `sessionId` to keep one conversation. This is the same session idea the article uses when it talks about an Aomi Session.
+
+### 3. Add the widget in a React app
+
+Current docs for a drop-in chat UI are in [Widget installation](https://aomi.dev/docs/guides/widget/widget-installation). They use `@aomi-labs/widget-lib` and `AomiWidget`, not the `AomiFrame` component from the article.
+
+```bash
+npm install @aomi-labs/widget-lib
+```
+
+You need an activated Aomi App and its numeric Application ID. In Next.js, mount the widget from a client component:
+
+```tsx
+"use client";
+
+import { AomiWidget } from "@aomi-labs/widget-lib";
+import "@aomi-labs/widget-lib/styles.css";
+
+export default function AssistantPage() {
+  return (
+    <AomiWidget
+      applicationId={process.env.NEXT_PUBLIC_AOMI_APPLICATION_ID!}
+      apiUrl={process.env.NEXT_PUBLIC_AOMI_API_URL!}
+      auth={{ kind: "browser_wallet" }}
+      height="calc(100dvh - 32px)"
+    />
+  );
+}
+```
+
+The article's Kuroko app pointed `backendUrl` at `/api/aomi` so it could inject live Polymarket data before the request reached Aomi. That proxy pattern is specific to Kuroko. The current widget docs say the widget does not require a custom API route. If you need live market data in the prompt, you will need to design that injection yourself. I did not re-run Kuroko's proxy, so I am not restating its request format beyond what the article shows.
+
+### 4. Keep signing with the user's wallet
+
+The article's execution path is EIP-712 through Para, then Polymarket. Current widget docs support browser wallets, Para or Privy. Do not put App keys or provider secrets in browser code.
+
+## What I did not verify
+
+- I did not rebuild Kuroko or call Polymarket.
+- I did not confirm today's widget package still accepts the exact `AomiFrame` API from the article.
+- Stop-loss and take-profit while the user is away are described in the article, not walked through step by step in the captions.

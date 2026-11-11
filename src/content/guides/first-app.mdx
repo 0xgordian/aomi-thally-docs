@@ -1,0 +1,180 @@
+---
+title: Deploy your first Aomi App
+description: Build and deploy a custom Aomi App plugin in Rust to extend the runtime with your own tools.
+---
+
+Build and deploy your first Aomi App as a plugin. By the end you will have written tools in Rust, compiled them, and deployed them to the Aomi runtime.
+
+An App is a Rust crate the runtime loads as a plugin. You write the tools, the platform runs them. This guide follows the documented happy path from idea to deployment.
+
+## Prerequisites
+
+You need Rust 1.85 or newer (2024 edition) and git. Check:
+
+```bash
+rustc --version
+git --version
+```
+
+If Rust is missing, install it from [rustup.rs](https://rustup.rs). If git is missing, install it from [git-scm.com](https://git-scm.com).
+
+## 1. Install the toolchain
+
+Install `aomi-build`, the CLI for scaffolding, building, and deploying Apps:
+
+```bash
+cargo install aomi-sdk --locked --features cli,dev-runtime
+```
+
+The `cli` feature builds the `aomi-build` command. The `dev-runtime` feature adds `aomi-run`, which lets you test your App locally before deploying.
+
+Confirm the install:
+
+```bash
+aomi-build --help
+```
+
+**Note:** This Rust toolchain was not installed in this environment. The commands above are from the official documentation at https://aomi.dev/docs/build/first-app and marked as untested here.
+
+## 2. Create your App folder
+
+Make a folder for your App and add the required structure:
+
+```bash
+mkdir hello-aomi && cd hello-aomi && mkdir src
+```
+
+The folder name becomes your slug. Use kebab-case.
+
+## 3. Write aomi.toml
+
+This file tells the platform who your App is and where it ships:
+
+```toml
+[app]
+name         = "hello-aomi"
+display_name = "Hello Aomi"
+platform     = "community"
+git          = "https://github.com/aomi-labs/community-apps"
+public       = true
+```
+
+## 4. Write Cargo.toml
+
+Your App compiles to a `cdylib` (dynamic library). Pin `aomi-sdk` to the exact version the platform requires:
+
+```toml
+[package]
+name = "hello-aomi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+aomi-sdk   = "=5.1.1"
+schemars   = "1"
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+```
+
+The required SDK version moves often. Run `aomi-build sdk check` for the current requirement, or `aomi-build sdk fix` to set the pin automatically. The runtime loads a plugin only if it was built against the required version.
+
+**Warning:** Pin it exactly with `=x.y.z`, not `^` or a range. Builds pinned to the wrong version are rejected at activation.
+
+## 5. Write src/lib.rs
+
+Create one tool that takes a name and returns a greeting:
+
+```rust
+use aomi_sdk::schemars::JsonSchema;
+use aomi_sdk::*;
+use serde::Deserialize;
+use serde_json::{Value, json};
+
+#[derive(Clone, Default)]
+pub struct HelloApp;
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct GreetArgs {
+    /// The name of the person to greet.
+    pub name: String,
+}
+
+pub struct Greet;
+
+impl DynAomiTool for Greet {
+    type App = HelloApp;
+    type Args = GreetArgs;
+    const NAME: &'static str = "greet";
+    const DESCRIPTION: &'static str =
+        "Use when the user wants a friendly greeting. Takes a name and returns a hello message.";
+
+    fn run(_app: &HelloApp, args: GreetArgs, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        Ok(json!({ "message": format!("Hello, {}! Welcome to Aomi.", args.name) }))
+    }
+}
+
+const PREAMBLE: &str =
+    "When the user asks to be greeted, call the greet tool with their name.";
+
+dyn_aomi_app!(
+    app = HelloApp,
+    name = "hello-aomi",
+    version = "0.1.0",
+    preamble = PREAMBLE,
+    tools = [Greet,],
+    namespaces = []
+);
+```
+
+The `DESCRIPTION` is what the model reads to decide when to call your tool. The `namespaces = []` means your App asks for no host powers like wallet signing.
+
+## 6. Build it
+
+```bash
+cargo build --release
+```
+
+Expected output:
+
+```text
+Compiling aomi-sdk v5.1.1
+Compiling hello-aomi v0.1.0
+Finished `release` profile [optimized] target(s) in 12.6s
+```
+
+## 7. Commit your files
+
+Deploy works from a clean commit. Add a `.gitignore`:
+
+```bash
+printf '/target\n/.aomi\nCargo.lock\n' > .gitignore
+git init && git add . && git commit -m "init hello-aomi"
+```
+
+Push this commit to a GitHub repo for deployment.
+
+## 8. Deploy (requires GitHub App connection)
+
+The deployment flow requires connecting your source repo through the Aomi GitHub App. This step involves:
+
+1. Connecting your repo with `aomi-build connect`
+2. Running `aomi-build deploy --dry-run` to preview
+3. Running `aomi-build deploy` to build the plugin
+4. Activating the release with `aomi-build deploy activate`
+
+**Note:** These deployment steps were not executed in this environment. They require GitHub App installation, repository permissions, and an activation token. The full documented workflow is at https://aomi.dev/docs/build/first-app and marked as untested here.
+
+## What you have now
+
+You have created the structure for a deployable Aomi App. The three files (`aomi.toml`, `Cargo.toml`, `src/lib.rs`) define a working plugin with one tool. After deployment and activation, your `greet` tool would run inside real chats on the Aomi runtime.
+
+To go further:
+
+- Review [Aomi App anatomy](https://aomi.dev/docs/build/app) for tools, arguments, and preambles
+- Check [Deploy and activate](https://aomi.dev/docs/build/deploy) for the full shipping process
+- See [Common errors](https://aomi.dev/docs/build/errors) for troubleshooting
+
+Reference: [Aomi App quickstart](https://aomi.dev/docs/build/first-app)

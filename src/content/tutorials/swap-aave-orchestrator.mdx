@@ -1,0 +1,28 @@
+---
+title: Plan a swap and Aave deposit
+description: The orchestrator splits 20 USDC between a staked-ETH swap and an Aave deposit on Base.
+---
+
+Official video: [Plan a Swap and Aave Deposit with Aomi Orchestrator](https://www.youtube.com/watch?v=TBYYys-fBmc).
+
+<Video src="https://www.youtube.com/watch?v=TBYYys-fBmc" title="Plan a Swap and Aave Deposit with Aomi Orchestrator" />
+
+This page is based on the official video title and description, plus Aomi's public docs. I could not get captions for this recording, so the exact on-screen clicks were not independently verified.
+
+The official description says the request is to split 20 USDC between a staked-ETH token swap and an Aave deposit on Base. The orchestrator breaks the instruction into steps and prepares the actions for review. The amounts shown are examples, not a recommended strategy.
+
+This is the same kind of "one instruction, two legs" flow Aomi has also described on X, with half going through a staked-ETH swap and half supplied to Aave.
+
+
+## How to try this in the portal
+
+These steps come from the [Portal](https://aomi.dev/docs/trade/portal) guide.
+
+1. Open [chat.aomi.dev](https://chat.aomi.dev).
+2. Connect a wallet or sign in when you are ready to transact.
+3. Set the network in the header to the chain used in the recording.
+4. Type the same kind of request the video describes.
+5. Review the simulation in the chat, then sign in your wallet only if you want to send it. Rejecting the prompt does nothing onchain.
+
+
+Set the network to Base, then ask Aomi to take a USDC amount, swap half into staked ETH, and supply the other half to Aave. Review each prepared step before you sign. I did not re-run this orchestrator plan.

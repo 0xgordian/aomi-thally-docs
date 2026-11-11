@@ -1,0 +1,27 @@
+---
+title: Hoodit on Aomi Build
+description: Deploy Hoodit from GitHub on Aomi Build, then inspect tools, activity, payment health and logs.
+---
+
+Official video: [Hoodit on Aomi Build: GitHub Deployment, App Activity and Logs](https://www.youtube.com/watch?v=mATKgZl5Nos). The description says it was recorded in Build staging, with a Robinhood Chain example.
+
+<Video src="https://www.youtube.com/watch?v=mATKgZl5Nos" title="Hoodit on Aomi Build: GitHub Deployment, App Activity and Logs" />
+
+## What the video shows
+
+Hoodit (the captions say "Hoodie") is deployed on Aomi's runtime from [build.aomi.dev](https://build.aomi.dev). An Aomi app is described as a compiled Rust bundle of its own tools, skills and guards, similar to a ChatGPT plugin or a Claude connector, and it runs without MCP.
+
+Hoodit brings in data APIs for stock token insights and copy trading, and uses Aomi's transaction pipeline for onchain actions. In the recording they stake 10 USDG to Spark Vault even though Hoodit has no Spark Vault integration in the app itself.
+
+Connecting a GitHub repo means each push is built and verified before it goes live. Payment health tracks money in and out. The captions give last-day figures for this recording: 112 chats, 272 tool calls, 21 confirmed transactions and 505 model credits. Every tool shows its calls, errors and last error message.
+
+## How to deploy an app of your own
+
+These steps come from the public [Developer Platform](https://aomi.dev/docs/build/developer-platform) and [App quickstart](https://aomi.dev/docs/build/first-app) docs, not from a restaged Hoodit deploy.
+
+1. Open [build.aomi.dev](https://build.aomi.dev).
+2. Create or connect a project. The Hoodit video shows a GitHub repo as the source, with a build and verification on each push.
+3. Follow the [first App quickstart](https://aomi.dev/docs/build/first-app) if you are starting from an empty folder: wrap your API as tools, add a system prompt, and deploy.
+4. After the app is live, use the activity and log views the way the video does: check tool calls, errors and payment health before you share the app.
+
+I did not deploy Hoodit or confirm those activity numbers outside this recording.

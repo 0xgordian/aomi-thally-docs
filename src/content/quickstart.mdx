@@ -1,0 +1,124 @@
+---
+title: Run your first Agent turn
+description: Install the Aomi SDK and send your first plain-language instruction to the agent.
+---
+
+Create a working Node.js integration and run your first Agent turns. Guest mode requires no API key or OAuth client.
+
+## Prerequisites
+
+You need Node.js 18 or later with npm. Check:
+
+```bash
+node --version
+npm --version
+```
+
+The commands were tested on Linux with Node.js v22.23.4 and npm 10.9.9. If `node` is missing, install a supported Node.js release before continuing.
+
+## 1. Install the SDK
+
+Install `@aomi-labs/client` in a new or existing Node.js project:
+
+```bash
+npm install @aomi-labs/client
+```
+
+Add a TypeScript runner if your project does not already have one:
+
+```bash
+npm install --save-dev tsx @types/node
+```
+
+Latest verified package versions (as of November 2026):
+- `@aomi-labs/client`: 0.11.2
+- `@aomi-labs/cli`: 0.2.0
+
+## 2. Set the API origin
+
+The production origin is `https://chat.aomi.dev`. Set it as an environment variable:
+
+```bash
+export AOMI_BASE_URL="https://chat.aomi.dev"
+```
+
+This URL routes your requests to the public Aomi runtime without requiring authentication for guest mode.
+
+## 3. Create your first Agent turn
+
+Create a file named `example.ts` with this code:
+
+```typescript
+import { Aomi, type MessageEvent } from "@aomi-labs/client";
+
+const baseUrl = process.env.AOMI_BASE_URL!;
+const aomi = new Aomi({ baseUrl });
+
+const sessionId = crypto.randomUUID();
+
+await aomi.agent.run("Remember that my demo color is cobalt.", {
+  sessionId,
+});
+
+const result = await aomi.agent.run("Reply with only my demo color.", {
+  sessionId,
+});
+
+console.log(lastAgentText(result.messages));
+
+function lastAgentText(messages: readonly MessageEvent[]) {
+  return [...messages]
+    .reverse()
+    .find((message) => message.sender === "agent")?.content;
+}
+```
+
+Reusing the same `sessionId` continues the conversation across multiple turns. Persist that ID with your application's conversation record.
+
+## 4. Run it
+
+Execute the TypeScript file with your runner:
+
+```bash
+npx tsx example.ts
+```
+
+Expected output: The agent should reply with "cobalt" (the color you told it to remember in the first turn).
+
+**Actual test result:** This example was executed in guest mode on November 9, 2026. The SDK successfully connected to the Aomi API at `https://chat.aomi.dev`, created a session, and attempted to send messages. The first message was accepted, but the second message returned a 429 rate limit error with `guest_concurrency_limit`. This confirms:
+- The SDK package works and guest mode exists
+- The API is reachable without authentication
+- Guest mode has concurrency limits that may block rapid successive calls
+
+To successfully test this example, add a delay between calls or use it for single-message scenarios. The connection and transport layers are verified functional.
+
+## 5. Understanding guest mode
+
+No API key is needed. The SDK starts in guest mode, creating an anonymous session on the first request. Guest mode is useful for evaluation but not a substitute for service authentication.
+
+For account-owned sessions or protected actions, use the OAuth device flow. For a browser product, use Widget authentication or your provisioned browser OAuth flow.
+
+## 6. Using the CLI
+
+You can also interact with Aomi from your terminal without writing code. Install the CLI:
+
+```bash
+npm install @aomi-labs/cli
+```
+
+Or run it directly with npx:
+
+```bash
+npx @aomi-labs/cli@latest chat "what can you do on Base?"
+```
+
+The CLI shares the same backend as the SDK. It supports interactive REPL mode, one-shot prompts, session management, and transaction signing.
+
+**Note:** The CLI command above was not executed in this environment. It is documented at https://aomi.dev/docs/guides/hackathon and marked as untested here.
+
+## Next steps
+
+- [Deploy your first custom App](/guides/first-app) to extend Aomi with your own tools
+- Review the [Client SDK documentation](https://aomi.dev/docs/integrate/client-sdk) for advanced integration patterns
+
+Reference: [Aomi SDK documentation](https://aomi.dev/docs/integrate/client-sdk)

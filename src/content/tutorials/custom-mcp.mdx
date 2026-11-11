@@ -1,0 +1,25 @@
+---
+title: Connect a custom MCP server
+description: A recorded walkthrough of the custom MCP connection flow inside Aomi.
+---
+
+Official video: [Connect a Custom MCP Server in Aomi | Recorded Walkthrough](https://www.youtube.com/watch?v=QzeIpdj_JEc).
+
+<Video src="https://www.youtube.com/watch?v=QzeIpdj_JEc" title="Connect a Custom MCP Server in Aomi, Recorded Walkthrough" />
+
+This page is based on the official video title and description, plus Aomi's public docs. I could not get captions for this recording, so the exact on-screen clicks were not independently verified.
+
+The official description says this is a recorded walkthrough of the custom MCP connection flow inside Aomi, including the plugin connection screen and the chat interface. It uses an earlier interface. For current MCP guidance, see [aomi.dev/docs/guides/mcp](https://aomi.dev/docs/guides/mcp).
+
+## How to connect Aomi's MCP today
+
+The current docs are about connecting an MCP client to Aomi's Agent or Pipeline servers, which is the reverse direction of a "custom MCP server inside Aomi" UI. I could not verify the older in-product connection screen from captions, so use the current docs for anything you connect today:
+
+```bash
+claude mcp add --transport http aomi-agent \
+  https://chat.aomi.dev/v1/agent/mcp
+```
+
+Run `/mcp` and authenticate if the browser flow does not start. Retired paths such as `/api/mcp` should not be used.
+
+If you specifically need the in-app "connect a custom MCP server" flow shown in the video, watch the recording for that older UI. I cannot faithfully reconstruct its clicks from the title and description alone.
