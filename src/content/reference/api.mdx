@@ -1,0 +1,59 @@
+---
+title: API overview
+description: Base URLs, authentication, request conventions and resources for the Aomi HTTP API.
+keywords: [http api, rest, base url, bearer token, idempotency-key, openapi]
+---
+
+The Aomi HTTP API serves three versioned resources from one host. Every endpoint is listed in the sidebar with an interactive request builder, generated from Aomi's published OpenAPI document.
+
+If your app is TypeScript, use the [SDK](/reference/sdk) instead. It wraps these routes with typed transports, handles authentication and validates arguments against live schemas.
+
+## Base URLs
+
+| Environment | URL |
+| --- | --- |
+| Production | `https://chat.aomi.dev` |
+| Staging | `https://chat-staging.aomi.dev` |
+
+Keep the origin in configuration. During a rollout, production and staging can serve different API versions.
+
+## Resources
+
+| Resource | Owns | Use it for |
+| --- | --- | --- |
+| `/v1/agent` | Conversation state | Stateful turns, progress events, actions and sessions |
+| `/v1/pipeline` | Nothing (stateless) | Catalog discovery and the build, simulate and commit lifecycle |
+| `/v1/account` | Account configuration | Credits, statements, App installation and write-only App credentials |
+
+## Authentication
+
+Protected requests carry a bearer token:
+
+```bash
+curl https://chat.aomi.dev/v1/agent/sessions \
+  -H "Authorization: Bearer $AOMI_ACCESS_TOKEN"
+```
+
+Each token is bound to one resource. An Agent token can't call Pipeline, and REST tokens can't call MCP. Guest sessions get only the guest-safe scopes the environment allows. To get a token, see [Authenticate your integration](/guides/authentication).
+
+## Conventions
+
+- Send and receive JSON unless an endpoint returns a document.
+- Send an `Idempotency-Key` header on every mutation. Requests without one are rejected. Reuse a key only when retrying the same logical request.
+- Log the `X-Request-Id` from any failed response and include it when you report a problem.
+- Respect `Retry-After` on throttled or deferred responses.
+- The API serves its own contract at `/openapi.json`, but the version can differ per environment. Pin types from the released TypeScript client rather than fetching the document at startup.
+
+## A typical Agent loop over HTTP
+
+1. `POST /v1/agent/chat` with your prompt and an `Idempotency-Key`. The response is a page of events with a cursor.
+2. `GET /v1/agent/chat/{sessionId}/stream?cursor=...` to follow the turn, passing the last cursor you received.
+3. When an event carries a pending action, show it to the user, then `POST /v1/agent/chat/{sessionId}/actions/{actionId}/result` with their decision.
+4. Stop when the turn reaches a terminal state.
+
+The SDK's `agent.run()` does exactly this for you.
+
+## Related
+
+- The stages behind the Pipeline routes: [How Aomi works](/concepts/how-aomi-works)
+- Source spec: [aomi.dev/docs/api-reference/openapi.json](https://aomi.dev/docs/api-reference/openapi.json)

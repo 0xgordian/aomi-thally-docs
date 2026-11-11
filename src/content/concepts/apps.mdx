@@ -1,0 +1,50 @@
+---
+title: Apps and routing
+description: What an Aomi App is, how a request gets routed to one, and what host namespaces an App can ask for.
+keywords: [apps, plugins, routing, auto, direct, namespaces, application id]
+---
+
+An App is a set of tools plus a preamble (the App's system prompt), compiled from Rust and loaded by the runtime as a plugin. Think of it like a ChatGPT plugin or a Claude connector, except every tool call inherits Aomi's simulation and signing rules. Uniswap, Jupiter, Aave and Hyperliquid are examples you can install in the portal. Your own App works the same way once it's deployed.
+
+## Anatomy
+
+| Part | Lives in | Decides |
+| --- | --- | --- |
+| Preamble | `src/lib.rs` | The App's role, its limits and which tool to use when |
+| Tools | `src/tool.rs` (or `lib.rs` for small Apps) | The operations the model is allowed to call |
+| Package | `Cargo.toml`, `aomi.toml` | How it's built and where it ships |
+
+Keep those apart. The preamble explains when to call a tool. A tool does one stable thing and returns stable JSON. Packaging files say nothing about behavior.
+
+Aim for three to eight tools. Fewer, intent-shaped tools (`search_*`, `get_*`, `build_*`, `submit_*`) beat one tool per upstream endpoint, because the model picks the right one more often.
+
+## Routing: Auto and Direct
+
+**Auto** is the default. Aomi chooses which installed App handles the request.
+
+**Direct** pins a request to one App. In the SDK you pass `target: { mode: "direct", applicationId }`. In the CLI you pass `--app <name>` or `--application-id <id>`. In the portal you pick it in the App selector.
+
+An Application ID is not the same thing as a Pipeline catalog slug, a session ID or an OAuth identity. Take it from your environment's App catalog (`aomi app list`, or `GET /v1/account/apps`).
+
+Private Apps also need an App key, sent as the `Aomi-App-Key` header. Default and public Apps don't.
+
+## Host namespaces
+
+An App asks for chain and wallet tools by namespace. Ask only for what you use.
+
+| Namespace | Gives the App |
+| --- | --- |
+| `evm-core` | Full EVM read, stage, simulate, message-signing and commit surface |
+| `evm-reads` | EVM account, contract, context and read calls |
+| `evm-sim` | EVM staging and simulation, without commit |
+| `svm-core` | Full Solana catalog |
+| `svm-reads` | Solana account, program, token and context reads |
+| `svm-write-ix` | Instruction-list stage, simulate and commit |
+| `svm-write-tx` | Full-transaction stage, simulate and commit |
+
+An App that only calls an external API uses `namespaces = []`. Choosing a namespace controls which tools the model can see. It never authorizes a signature.
+
+## Related
+
+- Build one end to end: [Build and deploy your first App](/guides/first-app)
+- Manifest and macro fields: [App manifest reference](/reference/app-manifest)

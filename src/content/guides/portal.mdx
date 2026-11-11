@@ -1,0 +1,62 @@
+---
+title: Trade in the portal
+navTitle: Portal
+description: Connect a wallet at chat.aomi.dev, ask for a trade in plain English, check the simulation and sign.
+timeEstimate: 3 min
+keywords: [portal, chat.aomi.dev, wallet, trade, signing policy]
+---
+
+The portal at [chat.aomi.dev](https://chat.aomi.dev) is the hosted Aomi chat. Price checks and balance lookups work without a wallet. To trade, connect one.
+
+## Before you start
+
+You need an EVM wallet (MetaMask, Rabby, Coinbase Wallet or anything on WalletConnect), a Solana wallet-adapter wallet, or an email or Google account. With email or Google, the portal creates an embedded wallet for you.
+
+## Run a trade
+
+<Steps>
+  <Step title="Connect a wallet or sign in">
+    Open [chat.aomi.dev](https://chat.aomi.dev) and connect. A browser wallet asks you to sign a message (SIWE on EVM, SIWS on Solana) that proves you own the address. No transaction is sent. Either route creates an Aomi account, which is where your threads, installed Apps and settings live.
+  </Step>
+  <Step title="Pick the network">
+    Set the chain for the thread in the network picker in the header.
+  </Step>
+  <Step title="Ask for the trade">
+    Type what you want, for example `swap 1 ETH for USDC`. The agent reads the chain, builds the transaction and simulates it.
+  </Step>
+  <Step title="Check the simulation, then sign">
+    The chat shows the simulated outcome. Continue and the request opens in your wallet. Aomi's fee is part of the same simulated batch, so the batch you sign is the batch you reviewed. Reject the prompt and nothing happens onchain.
+  </Step>
+</Steps>
+
+## Composer and header controls
+
+The network picker sets the chain per thread. EVM options include Ethereum, Base, Arbitrum, Optimism, Polygon, Linea, Monad, MegaETH, Robinhood Chain and their common testnets. On Solana you get mainnet, devnet and testnet, and the portal switches cluster before a signing request if it needs to.
+
+In the composer, the model selector defaults to **Auto** and the App selector lets you pin a thread to one App or let the agent route across everything you have installed. Install more Apps (Uniswap, Jupiter, Aave, Hyperliquid and others) from the packages catalog. Core wallet and chain tools are always on.
+
+Threads persist on your account and load even without a wallet connected. Without an account, a thread lasts only as long as the tab.
+
+## Choose a signing policy
+
+Each linked wallet has exactly one policy, set under **Settings > Account**:
+
+| Policy | What happens when the agent wants to sign |
+| --- | --- |
+| Manual | Your wallet opens for every transaction. New wallets start here. |
+| Accept transactions | Your connected wallet session signs without a separate popup. |
+| Bypass permissions | Unattended signing for scheduled or background work, through a Privy delegation or a Para agent wallet. Needs its own provider authorization. |
+| Locked | The wallet stays linked but can't sign through Aomi. |
+
+Changing a policy is never silent: you sign a short-lived authorization each time. Leave new wallets on Manual until you've watched a few trades go through. The model is explained in [Signing and permissions](/concepts/permission-model).
+
+## Limits
+
+Fork simulation in the portal covers EVM chains only. Solana requests go to your wallet without a fork simulation, so read the details in the wallet prompt before you approve.
+
+If a simulation can't finish, for example on an unsupported chain or an empty balance, the portal says it is continuing without a fee preview. Your wallet still has the final say.
+
+## Next steps
+
+- Watch a recorded session: [bridge ETH to Base and keep a gas buffer](/tutorials/eth-bridge-gas-buffer)
+- Use the same account from your editor: [Connect an MCP client](/guides/mcp)

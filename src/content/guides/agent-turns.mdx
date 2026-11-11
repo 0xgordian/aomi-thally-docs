@@ -1,0 +1,85 @@
+---
+title: Run and observe Agent turns
+navTitle: Agent turns
+description: Start Agent turns from TypeScript, react to actions and errors as they happen, keep conversations going with session IDs, and pass wallet context.
+timeEstimate: 8 min
+keywords: [agent.run, sessionId, events, action, UserState, routing, typescript]
+---
+
+`aomi.agent.run()` starts a turn and follows its event stream until the turn finishes. The examples assume the `aomi` client from the [quickstart](/quickstart).
+
+## Run a turn
+
+```ts
+const result = await aomi.agent.run("Explain my USDC balance on Base.");
+
+console.log(result.sessionId);
+console.log(result.messages);
+```
+
+`run()` returns an `AgentRun`. It behaves like a promise, so you can `await` it directly or call `result()`.
+
+## React while the turn runs
+
+For anything that touches a wallet, don't wait for the final result. Attach listeners right after you create the run, before you await it:
+
+```ts
+const run = aomi.agent.run("Swap half my USDC and supply the rest.");
+
+run.on("action", (action) => renderAction(action));
+run.on("completed", (result) => renderMessages(result.messages));
+run.on("error", ({ error }) => reportError(error));
+
+const result = await run.result();
+```
+
+An `action` event fires each time a prepared transaction changes state: `pending`, `submitted`, `completed`, `rejected`, `expired` or `failed`. Its request can carry simulation evidence, which is what you show the user before they sign. `error` covers transport, authorization and execution failures.
+
+## Keep a conversation going
+
+Pass the same `sessionId` on every turn:
+
+```ts
+const sessionId = crypto.randomUUID();
+
+await aomi.agent.run("Remember my preferred chain is Base.", { sessionId });
+const next = await aomi.agent.run("Which chain do I prefer?", { sessionId });
+```
+
+Save the ID next to your own conversation record. It identifies the conversation only. Who is allowed to read it is decided by the guest or OAuth credential, not the ID.
+
+## Tell Aomi about the user's wallet
+
+Each turn can carry a `UserState`, a snapshot of the caller's wallet that the agent builds against:
+
+```ts
+await aomi.agent.run("Swap 1 ETH to USDC.", {
+  sessionId,
+  userState: {
+    connection: { is_connected: true },
+    evm: { address: account, chain_id: 8453 },
+  },
+});
+```
+
+If you pass a `wallet` adapter to the `Aomi` constructor, the SDK builds this for you. Pass it by hand only when your app tracks the connection itself. The backend validates the shape strictly and rejects unknown fields. Allowed blocks are listed in the [SDK reference](/reference/sdk#userstate).
+
+Account abstraction and gas sponsorship are not part of `UserState`. The backend decides those per execution.
+
+## Send a turn to one App
+
+Leave out `target` and Aomi picks the App (Auto routing). To pin one deployed App, use Direct routing:
+
+```ts
+await aomi.agent.run("Explain the tools available in this App.", {
+  target: { mode: "direct", applicationId: selectedApplicationId },
+});
+```
+
+Use an Application ID from your environment's App catalog. It's a different value from a Pipeline catalog slug or a session ID. More on routing in [Apps and routing](/concepts/apps).
+
+## Next steps
+
+- Move past guest mode: [Authenticate your integration](/guides/authentication)
+- What happens after an `action` event: [How Aomi works](/concepts/how-aomi-works)
+- Raw HTTP equivalents: [API reference](/reference/api)

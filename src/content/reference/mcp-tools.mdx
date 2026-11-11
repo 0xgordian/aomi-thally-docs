@@ -1,0 +1,49 @@
+---
+title: MCP tools
+description: Every tool on Aomi's Agent and Pipeline MCP servers, plus the OAuth scopes each server requires.
+keywords: [mcp, tools, aomi_chat, aomi_check, aomi_run, scopes, oauth]
+---
+
+Both servers speak Streamable HTTP and accept `POST` and `OPTIONS`. Setup is in [Connect an MCP client](/guides/mcp). Your client's live `tools/list` response is the final word if this list changes.
+
+## Agent MCP
+
+URL: `https://chat.aomi.dev/v1/agent/mcp`
+
+| Tool | Purpose |
+| --- | --- |
+| `aomi_chat` | Start a turn or continue a named session. Auto routing by default. An Application selector switches to Direct. |
+| `aomi_check` | Long-poll for new events using the cursor from the previous call |
+| `aomi_interrupt` | Interrupt one active turn |
+| `aomi_list_sessions` | List recent sessions owned by the signed-in account |
+
+To follow a turn: call `aomi_chat`, keep the returned `session` and cursor exactly as returned, call `aomi_check` with both until the turn reaches a terminal state or needs a human action, and apply events in order. After a pending action is approved or rejected, call `aomi_check` again.
+
+## Pipeline MCP
+
+URL: `https://chat.aomi.dev/v1/pipeline/mcp`
+
+| Tool | Purpose |
+| --- | --- |
+| `aomi_get_agent_context` | Resolve the account's Pipeline thread and initial catalog context |
+| `aomi_list_apps` | List Apps |
+| `aomi_search_apps` | Search Apps by intent or name |
+| `aomi_select_app` | Read one App and its namespace catalog |
+| `aomi_list_namespaces` | List an App's namespaces |
+| `aomi_search_tools` | Search tools, optionally within one App |
+| `aomi_list_tools` | List tools for an App or namespace |
+| `aomi_describe_tool` | Read the exact input schema for one tool |
+| `aomi_call_tool` | Validate and run one tool call |
+| `aomi_run` | Run a multi-step program whose intermediate values feed later calls |
+
+Hosted Apps need their numeric `application_id` and can also need a platform selector.
+
+## OAuth scopes
+
+| Server | Required scopes |
+| --- | --- |
+| Agent MCP | `mcp:agent` plus the Agent read or write scope the tool needs |
+| Pipeline discovery | `mcp:pipeline` and `pipeline:catalog` |
+| Pipeline execution | `mcp:pipeline` and `pipeline:execute` |
+
+Grants are issued per URL and aren't interchangeable between servers, or with REST and guest tokens.

@@ -1,0 +1,109 @@
+---
+title: App manifest and Rust SDK
+navTitle: App manifest
+description: Fields in aomi.toml and Cargo.toml, the dyn_aomi_app! macro, the DynAomiTool trait and the aomi-build commands used to ship an App.
+keywords: [aomi.toml, Cargo.toml, dyn_aomi_app, DynAomiTool, aomi-build, aomi-run, aomi-sdk]
+---
+
+## Project layout
+
+```text
+my-app/
+├─ Cargo.toml
+├─ aomi.toml          contributor Apps only
+└─ src/
+   ├─ lib.rs          registration and preamble
+   ├─ client.rs       external API client, models, typed arguments
+   └─ tool.rs         tool implementations
+```
+
+Start from `sdk/examples/app-template-http` in the [aomi-sdk repository](https://github.com/aomi-labs/aomi-sdk). It already uses this split.
+
+## aomi.toml
+
+```toml
+[app]
+name         = "hello-aomi"
+display_name = "Hello Aomi"
+platform     = "community"
+git          = "https://github.com/aomi-labs/community-apps"
+public       = true
+```
+
+| Field | Meaning |
+| --- | --- |
+| `name` | The App's slug. Match the folder name, in kebab-case. |
+| `display_name` | The name users see. |
+| `platform` | The publishing platform. `community` for the public community platform. |
+| `git` | The repository the App ships through. |
+| `public` | Whether the App is public. |
+
+## Cargo.toml
+
+| Requirement | Why |
+| --- | --- |
+| `edition = "2024"` | The SDK needs Rust 1.85 or newer. |
+| `crate-type = ["cdylib"]` | The runtime loads the App as a dynamic library. |
+| `aomi-sdk = "=x.y.z"` | Exact pin to the platform's required version. Anything else is rejected at activation. |
+
+Get the required version with `aomi-build sdk check`, or let `aomi-build sdk fix` write it.
+
+## dyn_aomi_app!
+
+Registers the App once, in `src/lib.rs`:
+
+```rust
+dyn_aomi_app!(
+    app = HelloApp,
+    name = "hello-aomi",
+    version = "0.1.0",
+    preamble = PREAMBLE,
+    tools = [Greet,],
+    namespaces = []
+);
+```
+
+| Argument | Meaning |
+| --- | --- |
+| `app` | The App type. The example derives `Clone` and `Default`. |
+| `name` | The App name. |
+| `version` | The App version. |
+| `preamble` | The App's system prompt. |
+| `tools` | Every tool type the model may call. |
+| `namespaces` | Host tool sets the App needs. `[]` for none. See [host namespaces](/concepts/apps#host-namespaces). |
+
+## DynAomiTool
+
+Each tool implements `DynAomiTool`:
+
+```rust
+impl DynAomiTool for Greet {
+    type App = HelloApp;
+    type Args = GreetArgs; // Deserialize + JsonSchema
+    const NAME: &'static str = "greet";
+    const DESCRIPTION: &'static str = "Use when the user wants a friendly greeting.";
+
+    fn run(_app: &HelloApp, args: GreetArgs, _ctx: DynToolCallCtx) -> Result<Value, String> {
+        Ok(json!({ "message": format!("Hello, {}!", args.name) }))
+    }
+}
+```
+
+`Args` derives `JsonSchema`, and its doc comments become the field descriptions the model sees. Return stable JSON on success, and a short message on failure that tells the model what to change.
+
+## Toolchain commands
+
+Install with `cargo install aomi-sdk --locked --features cli,dev-runtime`. Neither binary supports `--version`. Use `--help`.
+
+| Command | Purpose |
+| --- | --- |
+| `aomi-build sdk check` | Print the platform's required `aomi-sdk` version |
+| `aomi-build sdk fix` | Set the pin in `Cargo.toml` |
+| `aomi-build connect` | Install the Aomi GitHub App on your repo and save the activation token (once) |
+| `aomi-build deploy --dry-run` | Preview the manifest and run preflight checks |
+| `aomi-build deploy` | Build a release from the connected repo and commit |
+| `aomi-build deploy status` | Watch the release build |
+| `aomi-build deploy activate` | Load the release onto the live runtime. Needs `AOMI_APP_ACTIVATION_TOKEN` |
+| `aomi-run` | Run your App locally and chat with it before shipping |
+
+Deploy commands read `AOMI_BACKEND_URL`, which is `https://api.aomi.dev` for the community platform.

@@ -1,0 +1,28 @@
+---
+title: Supported chains
+description: EVM chains and Solana clusters Aomi supports, with chain IDs.
+keywords: [chains, networks, chain id, ethereum, base, solana, arbitrum]
+---
+
+| Chain | Chain ID |
+| --- | --- |
+| Ethereum | `1` |
+| Optimism | `10` |
+| Polygon | `137` |
+| Monad | `143` |
+| MegaETH | `4326` |
+| Robinhood Chain | `4663` |
+| Arc | `5042` |
+| Base | `8453` |
+| Arbitrum | `42161` |
+| Linea | `59144` |
+
+Testnets: Sepolia (`11155111`), Base Sepolia (`84532`), Linea Sepolia (`59141`), Monad Testnet (`10143`), Arc Testnet (`5042002`), and local Anvil (`31337`) for development.
+
+Solana: `mainnet-beta`, `devnet` and `testnet`.
+
+This table comes from the CLI's built-in chain list. Your installed version may be older. Run `aomi chain list` for the list your binary knows, and check the portal's network picker for what it offers today.
+
+## Simulation coverage
+
+EVM transactions are simulated on a fork before signing. In the portal, Solana requests go to the wallet without a fork simulation, so review them in the wallet prompt.

@@ -17,23 +17,107 @@
   },
   "navbar": {
     "primary": {
-      "label": "Get started",
+      "label": "Quickstart",
       "href": "/quickstart"
     }
   },
   "tabs": [
     {
-      "tab": "Guide",
+      "tab": "Documentation",
       "groups": [
         {
-          "group": "Get started with Aomi",
+          "group": "Get started",
           "pages": [
             "introduction",
-            "quickstart",
+            "quickstart"
+          ]
+        },
+        {
+          "group": "Use Aomi",
+          "pages": [
+            "guides/portal",
+            "guides/mcp",
+            "guides/cli"
+          ]
+        },
+        {
+          "group": "Integrate",
+          "pages": [
+            "guides/agent-turns",
+            "guides/authentication"
+          ]
+        },
+        {
+          "group": "Build Apps",
+          "pages": [
             "guides/first-app"
+          ]
+        },
+        {
+          "group": "Concepts",
+          "pages": [
+            "concepts/how-aomi-works",
+            "concepts/permission-model",
+            "concepts/apps",
+            "concepts/glossary"
+          ]
+        },
+        {
+          "group": "Help",
+          "pages": [
+            "resources/troubleshooting",
+            "resources/faq"
           ]
         }
       ]
+    },
+    {
+      "tab": "Reference",
+      "groups": [
+        {
+          "group": "SDKs and tools",
+          "pages": [
+            "reference/sdk",
+            "reference/cli",
+            "reference/mcp-tools",
+            "reference/app-manifest"
+          ]
+        },
+        {
+          "group": "Platform",
+          "pages": [
+            "reference/chains"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "API reference",
+      "groups": [
+        {
+          "group": "Overview",
+          "pages": [
+            "reference/api"
+          ]
+        }
+      ],
+      "api": {
+        "source": "openapi.yaml",
+        "tagsOrder": [
+          "Agent",
+          "Agent sessions",
+          "Pipeline catalog",
+          "Pipeline EVM lifecycle",
+          "Pipeline Solana lifecycle",
+          "Pipeline EVM reads",
+          "Pipeline Solana reads",
+          "Account",
+          "Account Apps",
+          "MCP",
+          "Service"
+        ],
+        "defaultGroup": "Service"
+      }
     },
     {
       "tab": "Tutorials",
@@ -96,5 +180,45 @@
   ],
   "ai": {
     "chat": true
+  },
+  "readiness": {
+    "goldenQuestions": [
+      {
+        "question": "How do I install the Aomi SDK?",
+        "expect": [
+          "/quickstart"
+        ]
+      },
+      {
+        "question": "How do I connect Claude Code to Aomi?",
+        "expect": [
+          "/guides/mcp"
+        ]
+      },
+      {
+        "question": "What does guest_concurrency_limit mean?",
+        "expect": [
+          "/resources/troubleshooting"
+        ]
+      },
+      {
+        "question": "How do I deploy an Aomi App?",
+        "expect": [
+          "/guides/first-app"
+        ]
+      },
+      {
+        "question": "Does Aomi hold my private keys?",
+        "expect": [
+          "/concepts/permission-model"
+        ]
+      },
+      {
+        "question": "How do I register an OAuth client?",
+        "expect": [
+          "/guides/authentication"
+        ]
+      }
+    ]
   }
 }

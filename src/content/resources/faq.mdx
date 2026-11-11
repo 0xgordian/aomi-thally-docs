@@ -1,0 +1,33 @@
+---
+title: FAQ
+description: Answers to the questions developers ask before building on Aomi.
+keywords: [faq, security, custody, langchain, claude code, hallucination]
+---
+
+## Claude Code or Cursor can already send transactions. Why use Aomi?
+
+They can, but the hard way. Asked to swap on Uniswap, a general agent pulls the ABI, reads state, writes a script, runs it and hopes the calldata is right. That's a dozen tool calls and tens of thousands of tokens, with nothing checking the result before you sign. Through Aomi it's one call that returns a resolved, simulated transaction ready to sign. Aomi doesn't replace your agent. It's the tool your agent uses when the task goes onchain. Set it up with [MCP](/guides/mcp).
+
+## How is building on Aomi different from the OpenAI SDK, Claude Code SDK or LangChain?
+
+Those give you the model call. You still build the server, tool execution, thread management, simulation and wallet plumbing. Aomi hosts the agent. You wrap your API as tools, write a preamble and deploy. The runtime handles orchestration, chain execution, simulation, session state and isolating each user's thread. See [Build and deploy your first App](/guides/first-app).
+
+## What stops a hallucinated transaction from going through?
+
+Simulation. Every EVM transaction is run on a fork of live chain state before it can be signed. Bad calldata, missing approvals, reverts and mismatched recipients are caught there, and a failed simulation never reaches a signer. You see exact token changes, gas and contract calls before you approve. Details in [How Aomi works](/concepts/how-aomi-works).
+
+## Does Aomi hold my keys?
+
+No. In the portal your wallet signs. In the CLI, `aomi tx sign` signs locally with viem. If you hand a key to an agent and let it run `aomi tx sign`, the agent is the one pressing Sign, so treat that key accordingly. See [Signing and permissions](/concepts/permission-model).
+
+## Do I need an API key to start?
+
+No. The SDK and CLI start in guest mode. You need OAuth when sessions must belong to an account or an operation isn't open to guests, and an App key only for private Apps. See [Authenticate your integration](/guides/authentication).
+
+## Which chains are supported?
+
+Ethereum, Base, Arbitrum, Optimism, Polygon, Linea, Monad, MegaETH, Robinhood Chain, Arc and Solana, plus testnets. Chain IDs are in [Supported chains](/reference/chains).
+
+## Is there a staging environment?
+
+Yes, `https://chat-staging.aomi.dev`. Accounts, OAuth grants, sessions and App inventory are separate per environment.

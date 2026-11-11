@@ -160,12 +160,12 @@ const brandPresets: Record<BrandPresetKey, BrandConfig> = {
 const brandPreset: BrandPresetKey = 'primary'
 
 export const siteConfig: SiteConfig = {
-  name: 'Aomi Developer Guide',
+  name: 'Aomi Docs',
   description:
-    'Build with Aomi: execution harness for onchain AI across EVM and Solana',
+    'Turn plain-language instructions into simulated, wallet-signed transactions on EVM chains and Solana.',
   repoUrl: 'https://github.com/0xgordian/aomi-thally-docs',
   links: [
-    { label: 'Get started', href: '/quickstart' },
+    { label: 'Quickstart', href: '/quickstart' },
     { label: 'Aomi docs', href: 'https://aomi.dev/docs' },
     { label: 'Portal', href: 'https://chat.aomi.dev' },
   ],

@@ -1,0 +1,93 @@
+---
+title: Glossary
+description: Short definitions of the terms used across these docs.
+keywords: [glossary, terms, definitions]
+---
+
+### Account abstraction (AA)
+
+A programmable account that handles a batch of approvals and calls with one signature. Aomi supports EIP-7702 and EIP-4337 and falls back to direct EOA execution.
+
+### Action
+
+A durable event in an Agent session that needs a response from the client, usually a transaction or signature to approve or reject. The CLI's `aomi tx` commands work on Actions.
+
+### Agent
+
+The stateful API (`/v1/agent`). It holds conversation state, plans from a prompt and streams events.
+
+### App
+
+A plugin of tools plus a preamble, deployed to the runtime and selectable by users. See [Apps and routing](/concepts/apps).
+
+### Application ID
+
+The canonical ID of a deployed App, used for Direct routing.
+
+### Batch
+
+An ordered group of EVM transactions treated as one unit, such as an approval followed by the swap that needs it.
+
+### Build
+
+The value that moves through the Pipeline: ordered actions plus an expiry, a digest and a server attestation. Pass it between stages unchanged.
+
+### Commit
+
+The stage that checks a simulated Build and turns it into signing requests. It accepts only a Build that passed simulation.
+
+### Credit
+
+Aomi's unit for pricing and usage. One credit is $0.01.
+
+### Developer Platform
+
+[build.aomi.dev](https://build.aomi.dev), the browser control plane for creating, deploying and operating Apps.
+
+### Drain vector
+
+A calldata field that could send funds somewhere other than the signer, such as `recipient`, `onBehalfOf`, `mintRecipient` or `_to`. Guards block a mismatch.
+
+### Fork
+
+A temporary copy of live chain state used for simulation. Nothing on it costs gas or touches the real chain.
+
+### Guards
+
+Checks that decide what may be staged at all: App allowlists, protocol drain-vector checks, value caps and read-only threads. They fail closed.
+
+### Guest mode
+
+The default SDK and CLI identity: an anonymous, in-memory session created on the first request.
+
+### Host namespace
+
+A named set of runtime tools an App can request, such as `evm-reads`.
+
+### MCP
+
+Model Context Protocol. Aomi hosts Agent MCP at `/v1/agent/mcp` and Pipeline MCP at `/v1/pipeline/mcp`.
+
+### Non-custodial
+
+Aomi never holds private keys or funds. Only your wallet, or a provider you have explicitly authorized, signs.
+
+### Pipeline
+
+The stateless API (`/v1/pipeline`) for discovering operations and driving build, simulate and commit.
+
+### Preamble
+
+An App's system prompt.
+
+### Session
+
+A persisted Agent conversation, identified by a session ID. It is not a credential.
+
+### Signing policy
+
+The per-wallet setting that decides what approval a transaction needs: Manual, Accept transactions, Bypass permissions or Locked.
+
+### UserState
+
+The wallet context an Agent turn carries: connection, EVM address and chain, Solana address and cluster.

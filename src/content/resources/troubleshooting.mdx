@@ -1,0 +1,91 @@
+---
+title: Troubleshooting
+description: Fixes for the errors people hit most with the Aomi SDK, MCP servers, CLI and App toolchain, keyed by the exact message you see.
+keywords: [errors, troubleshooting, 429, 401, 403, 404, invalid_target, insufficient_scope]
+---
+
+Search this page for the exact message in your terminal.
+
+## SDK and HTTP API
+
+### Guest concurrency limit
+
+`429` with `guest_concurrency_limit`. Guest sessions limit how much work can run at once, and quick back-to-back calls can hit it even when you await each one. Wait and retry, and honor the `Retry-After` header. If you need steady throughput, sign in with [OAuth](/guides/authentication) instead of relying on guest mode.
+
+### 403 insufficient_scope as a guest
+
+The environment doesn't allow that operation for guests, for example Pipeline execution. Sign in with the OAuth device flow and retry.
+
+### invalid_target: OAuth client is bound to another Aomi resource
+
+A self-registered client covers exactly one resource. Register a second client for the other resource, or request only the resource your client was registered for: `aomi.auth.login({ for: "agent" })`.
+
+### Mutation rejected for a missing Idempotency-Key
+
+Every mutating HTTP request needs an `Idempotency-Key` header. The SDK adds it for you. Over raw HTTP, generate one per logical request and reuse it only for retries of that request.
+
+### userState rejected
+
+The backend rejects unknown fields. Check your object against the [UserState table](/reference/sdk#userstate).
+
+## MCP
+
+### 401 Unauthorized
+
+Finish the browser login for that exact server. In Claude Code, run `/mcp` and authenticate `aomi-agent`.
+
+### 403 Forbidden
+
+You're using a token from another audience. Agent, Pipeline, REST and guest tokens aren't interchangeable. Authenticate this server again.
+
+### 404 on /api/mcp
+
+Those paths were removed. Use `https://chat.aomi.dev/v1/agent/mcp` or `https://chat.aomi.dev/v1/pipeline/mcp`.
+
+### 404 when opening the MCP URL in a browser
+
+Expected. The servers accept only `POST` and `OPTIONS`. Test with your MCP client instead.
+
+### Failed to fetch metadata document (network error or redirect blocked)
+
+A Codex login issue. Use dynamic client registration:
+
+```bash
+codex mcp login aomi-agent --oauth-client-registration dcr
+```
+
+### Action stays pending
+
+Approve or reject it in the portal or your wallet client, then call `aomi_check` again.
+
+## CLI
+
+### The interactive prompt exits immediately in CI
+
+`aomi` with no arguments needs a TTY. Use `aomi --prompt "..."` or `aomi chat "..."` in scripts.
+
+### A script keeps adding to an old conversation
+
+Pass `--new-session` on the first command of each task.
+
+## Building Apps
+
+### SDK version mismatch: plugin=X, host=Y
+
+`aomi-run` loads only plugins built against its own SDK version. Locally, pin `aomi-sdk` to the version `aomi-run` prints at startup. For a ship build, pin to `aomi-build sdk check`.
+
+### aomi-run: command not found
+
+You installed with `--features cli` only. Reinstall:
+
+```bash
+cargo install aomi-sdk --locked --features cli,dev-runtime
+```
+
+### aomi-build --version returns an error
+
+Neither `aomi-build` nor `aomi-run` has a `--version` flag. Use `--help`.
+
+### Build rejected at activation
+
+The `aomi-sdk` pin isn't an exact match for the platform's required version. Use `=x.y.z` from `aomi-build sdk check`.

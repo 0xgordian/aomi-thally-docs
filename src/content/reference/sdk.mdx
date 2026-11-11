@@ -1,0 +1,95 @@
+---
+title: TypeScript SDK
+description: Reference for @aomi-labs/client, the Aomi class, its surfaces, Agent run options, events and the UserState shape.
+keywords: ["@aomi-labs/client", Aomi, AomiClient, agent.run, UserState, oauth]
+---
+
+```bash
+npm install @aomi-labs/client
+```
+
+`@aomi-labs/client` runs in Node.js and browsers. The terminal command is a separate package, `@aomi-labs/cli`. The two have separate version histories.
+
+Check which version you have and what your environment serves:
+
+```bash
+npm ls @aomi-labs/client
+curl --fail "$AOMI_BASE_URL/openapi.json" -o openapi.json
+```
+
+## The Aomi class
+
+```ts
+import { Aomi } from "@aomi-labs/client";
+
+const aomi = new Aomi({ baseUrl: process.env.AOMI_BASE_URL! });
+```
+
+| Option | Type | Notes |
+| --- | --- | --- |
+| `baseUrl` | `string` | Required. `https://chat.aomi.dev` in production. |
+| `auth` | auth provider | Leave out for guest mode. Pass `oauth({ clientId, onVerification, store })` for the device flow. |
+| `wallet` | wallet adapter | When set, the SDK derives `UserState` and wires signing for Agent runs. |
+| `apiKey` | `string` | App key for a private App, sent as `Aomi-App-Key`. |
+
+### Surfaces
+
+| Property | Use it for |
+| --- | --- |
+| `aomi.agent` | Stateful Agent turns |
+| `aomi.pipeline` | Stateless Build flows |
+| `aomi.auth` | Guest or OAuth lifecycle: `mode`, `login()`, `status()`, `logout()` |
+| `aomi.account` | Credit balance and activity |
+| `aomi.raw` | The low-level `AomiClient`, sharing the same auth state |
+
+`Aomi` is the product layer: it manages auth, validates arguments, wires the wallet and returns typed objects such as `AgentRun` and `Build`. `aomi.raw` drops down to one typed method per API operation without a second client or a second login. `Session` remains for older integrations.
+
+## aomi.agent.run(prompt, options?)
+
+Starts a turn and follows the event stream until it reaches a terminal state. Returns an `AgentRun`, which you can `await` or call `.result()` on.
+
+| Option | Type | Notes |
+| --- | --- | --- |
+| `sessionId` | `string` | Reuse to continue a conversation. A new one starts a new conversation. |
+| `userState` | `UserState` | Wallet context for this turn. Set automatically if you configured `wallet`. |
+| `target` | `{ mode: "direct", applicationId }` | Pin the turn to one App. Leave out for Auto routing. |
+
+The result has `sessionId` and `messages`. Each message is a `MessageEvent` with `sender` and `content`.
+
+### Run events
+
+Attach listeners with `run.on(event, handler)` before awaiting.
+
+| Event | Fires when |
+| --- | --- |
+| `action` | A prepared action changes state: `pending`, `submitted`, `completed`, `rejected`, `expired` or `failed`. Its request can include simulation evidence. |
+| `completed` | The run reaches a terminal result. |
+| `error` | A transport, authorization or execution failure happens. |
+
+## UserState
+
+The backend validates `userState` strictly and rejects unknown fields.
+
+| Block | Fields |
+| --- | --- |
+| `connection` | `is_connected`, `provider`, `provider_label`, `auth_method` |
+| `evm` | `address`, `chain_id`, `ens_name` |
+| `svm` | `address`, `cluster`, `wallet_name`, `transport`, `capabilities` |
+| `preferences`, `ext` | Free-form objects for your own data |
+
+Account abstraction and sponsorship aren't part of `UserState`. The backend decides them per execution.
+
+## oauth(options)
+
+| Option | Notes |
+| --- | --- |
+| `clientId` | A public client ID. See [Register an OAuth client](/guides/authentication#register-an-oauth-client). |
+| `onVerification` | Called with `verificationUri`, `verificationUriComplete` and `userCode`. Show them to the user. |
+| `store` | An `AomiOAuthGrantStore` with `load()` and `save(grants)`. Without it, grants live in memory only. |
+
+`aomi.auth.login({ for: "agent" })` requests a grant for one resource. Pass `"pipeline"` as well only with a client authorized for both.
+
+## Related
+
+- Walkthrough: [Run and observe Agent turns](/guides/agent-turns)
+- Raw HTTP: [API overview](/reference/api)

@@ -1,0 +1,109 @@
+---
+title: Use the Aomi CLI
+navTitle: CLI
+description: Install the aomi command, run one-shot and interactive Agent chats, review a prepared transaction and sign it from your terminal.
+timeEstimate: 5 min
+keywords: [cli, aomi, terminal, npx, tx sign, pipeline]
+---
+
+The `aomi` command ships in the `@aomi-labs/cli` npm package. It talks to the same runtime as the SDK, defaults to `https://chat.aomi.dev`, and works in guest mode until you sign in.
+
+<Note>
+This is the client CLI. To author and deploy Apps you need the Rust toolchain (`aomi-build` and `aomi-run`) instead. See [Build and deploy your first App](/guides/first-app).
+</Note>
+
+## Install
+
+Try it without installing:
+
+```bash
+npx @aomi-labs/cli@latest --help
+```
+
+Or install the binary globally:
+
+```bash
+npm install -g @aomi-labs/cli@latest
+aomi --version
+```
+
+The examples below use the global `aomi`. Swap in `npx @aomi-labs/cli@latest` if you skipped the install.
+
+## Ask something
+
+One prompt, then exit:
+
+```bash
+aomi --prompt "what is the price of ETH?" --new-session
+```
+
+`aomi chat` does the same with a positional message. Add `--verbose` to stream tool calls and events while the turn runs:
+
+```bash
+aomi chat "compare ETH lending rates" --new-session --verbose
+```
+
+Run `aomi` with no arguments for the interactive prompt. It needs a TTY, so scripts and CI should use `--prompt` or `aomi chat`. Inside the prompt, `/app <name>` pins an App, `/model list` shows models and `:exit` quits.
+
+Start every new task with `--new-session`. Without it the CLI continues the active session, which is rarely what you want in a script.
+
+## Pin an App
+
+New sessions route automatically. To send a request to one App, pass `--app` (or `--application-id`), which switches to Direct routing:
+
+```bash
+aomi app list
+aomi chat "get a quote" --mode direct --app zerox --new-session
+```
+
+Don't combine `--app` with `--mode auto`.
+
+## Review and sign a transaction
+
+When a turn prepares a transaction, it's stored as an Action on the session. List it, simulate it, then sign:
+
+```bash
+aomi tx list --json
+aomi tx simulate <id>
+aomi tx sign <id>
+```
+
+Before you sign, check that sender, chain, recipient, token, amount and fees match what you asked for. For an approve-then-swap, pass both IDs in order so the swap simulates against the approval:
+
+```bash
+aomi tx simulate tx-1 tx-2
+aomi tx sign tx-1 tx-2
+```
+
+`aomi tx sign` signs locally with the signer you've configured (`aomi wallet set`, or `--private-key` / `PRIVATE_KEY` for a single command). The key never goes to Aomi. To sign in another wallet instead, export the Action with `aomi tx export <id>`.
+
+<Warning>
+`aomi wallet set` writes the key to your local session file under `~/.aomi`. Treat that folder like a password store and never commit it. Use the per-command flag if you don't want the key on disk.
+</Warning>
+
+## Call Pipeline directly
+
+If you already know the operation, skip the Agent and use Pipeline:
+
+```bash
+aomi pipeline apps
+aomi pipeline operations --app aave
+aomi pipeline operation supply --app aave
+aomi pipeline build supply --app aave --arguments '{"asset":"USDC","amount":"100"}'
+```
+
+## Sign in
+
+Guest mode covers public operations. Sign in when sessions, installed Apps or credentials should belong to your account:
+
+```bash
+aomi account login
+aomi account whoami
+```
+
+`aomi account login` uses the OAuth device flow and registers its own client the first time. A session ID continues a conversation. It doesn't authenticate you.
+
+## Next steps
+
+- Every command, flag and environment variable: [CLI reference](/reference/cli)
+- Why simulation runs before signing: [How Aomi works](/concepts/how-aomi-works)

@@ -1,0 +1,110 @@
+---
+title: Authenticate your integration
+navTitle: Authentication
+description: Pick the right credential for an Aomi integration, register a public OAuth client, and sign in from TypeScript with the device flow.
+timeEstimate: 10 min
+keywords: [oauth, device flow, guest mode, app key, client id, scopes]
+---
+
+Most integrations start with no credential at all. Move down this table only when a call is refused or you need sessions that belong to an account.
+
+| Credential | You need it when | How to get it |
+| --- | --- | --- |
+| Guest session (default) | Evaluating, scripting, calling the default Agent or public Apps | Nothing. `new Aomi({ baseUrl })` creates one on the first call |
+| OAuth client ID | A CLI, bot or service needs a signed-in account: Pipeline execution, credits, App credentials | Register one with a single request (below), or let `aomi account login` do it |
+| App key | Calling a private App | Issued by the Aomi team to the App owner. Sent as the `Aomi-App-Key` header |
+| Account bearer | Your host already holds a signed-in Aomi session, such as the widget | Minted by the host session |
+
+If a guest call returns `403` with `insufficient_scope`, the environment doesn't allow that operation for guests. Sign in with OAuth and retry.
+
+## Guest mode
+
+```ts
+import { Aomi } from "@aomi-labs/client";
+
+const aomi = new Aomi({ baseUrl: process.env.AOMI_BASE_URL! });
+
+console.log(aomi.auth.mode); // "guest"
+await aomi.agent.run("Introduce Aomi in one sentence.");
+```
+
+The guest identity lives in memory for the life of the process. Restart and you get a new one. A connected wallet does not quietly upgrade a guest into an account. Call `aomi.auth.logout()` to drop the guest session.
+
+## Register an OAuth client
+
+Use a public client. Never ship a client secret in a CLI, browser app or npm package.
+
+Registration is self-serve and needs no account:
+
+```bash
+curl -sS -X POST https://chat.aomi.dev/api/auth/oauth2/register \
+  -H "content-type: application/json" \
+  -d '{
+    "client_name": "my-aomi-service",
+    "token_endpoint_auth_method": "none",
+    "grant_types": ["urn:ietf:params:oauth:grant-type:device_code", "refresh_token"],
+    "resources": ["https://chat.aomi.dev/v1/agent"],
+    "scope": "agent:read agent:write agent:actions:resolve offline_access"
+  }'
+```
+
+The response includes your `client_id`. The server enforces a few rules: `token_endpoint_auth_method` must be `none`, `grant_types` must be exactly device code plus refresh token, and `resources` must name exactly one REST resource. Every scope has to belong to that resource. `openid`, `profile` and `email` are rejected.
+
+| Resource | Scopes to request |
+| --- | --- |
+| `https://chat.aomi.dev/v1/agent` | `agent:read agent:write agent:actions:resolve offline_access` |
+| `https://chat.aomi.dev/v1/pipeline` | `pipeline:catalog pipeline:execute offline_access` |
+| `https://chat.aomi.dev/v1/account` | Only the `account:*` scopes you need, such as `account:apps:read` |
+
+<Warning>
+A self-registered client is bound to its one resource. Using it for another fails with `invalid_target` ("OAuth client is bound to another Aomi resource"). Register one client per resource. If a single SDK client must cover Agent and Pipeline, ask the Aomi team for a provisioned client ID.
+</Warning>
+
+## Sign in from TypeScript
+
+```ts
+import { Aomi, oauth } from "@aomi-labs/client";
+
+const aomi = new Aomi({
+  baseUrl: process.env.AOMI_BASE_URL!,
+  auth: oauth({
+    clientId: process.env.AOMI_OAUTH_CLIENT_ID!,
+    onVerification({ verificationUriComplete, verificationUri, userCode }) {
+      console.log(`Open ${verificationUriComplete ?? verificationUri} and confirm ${userCode}`);
+    },
+  }),
+});
+
+await aomi.auth.login({ for: "agent" });
+console.log(await aomi.auth.status());
+```
+
+The user opens the printed URL, confirms the code, and the SDK receives tokens for that resource. Calling `login()` up front is optional. Agent and Pipeline calls fetch or refresh their grant when they need it, and the SDK retries once after an expired credential.
+
+## Keep grants across restarts
+
+Device grants are memory-only unless you give the SDK a store:
+
+```ts
+import type { AomiOAuthGrantStore } from "@aomi-labs/client";
+
+const grantStore: AomiOAuthGrantStore = {
+  async load() {
+    return encryptedStore.readGrantSnapshot();
+  },
+  async save(grants) {
+    await encryptedStore.replaceGrantSnapshot([...grants]);
+  },
+};
+```
+
+Pass it as `store: grantStore` in `oauth({ ... })`. The snapshot holds rotating refresh grants, so keep it in an encrypted database, a secret manager or the OS keychain. A runnable device-flow example lives in the [aomi repository](https://github.com/aomi-labs/aomi/tree/main/apps/examples/headless-client/src/oauth).
+
+## Browser apps
+
+For a web app on another origin, use the Aomi widget's authentication. It creates an origin-bound session from the user's wallet or provider proof. Don't copy the device-flow grant store into browser code.
+
+## Next steps
+
+- MCP clients handle their own OAuth: [Connect an MCP client](/guides/mcp)
+- Calling the REST API with your own tokens: [API reference](/reference/api)

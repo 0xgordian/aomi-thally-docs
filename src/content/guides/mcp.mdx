@@ -1,0 +1,107 @@
+---
+title: Connect an MCP client
+navTitle: MCP
+description: Add Aomi's Agent or Pipeline MCP server to Claude Code, Codex, Cursor or any Streamable HTTP client, authorize it, and run a first request.
+timeEstimate: 5 min
+keywords: [mcp, claude code, codex, cursor, oauth, aomi_chat, aomi_check]
+---
+
+Aomi runs two MCP servers over Streamable HTTP. Most people want the Agent server: you describe the goal and Aomi plans the steps. Add the Pipeline server when your agent already knows which operation it wants to call.
+
+| Server | URL | Use it to |
+| --- | --- | --- |
+| Agent MCP | `https://chat.aomi.dev/v1/agent/mcp` | Start or continue Agent turns, read progress, interrupt a turn, list your sessions |
+| Pipeline MCP | `https://chat.aomi.dev/v1/pipeline/mcp` | Find Apps and operation schemas, then run one operation or a multi-step program |
+
+<Warning>
+`/api/mcp` and `/api/mcp/direct` have been removed. They are not aliases for the versioned URLs and return `404`.
+</Warning>
+
+## Add the Agent server
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```bash
+    claude mcp add --transport http aomi-agent \
+      https://chat.aomi.dev/v1/agent/mcp
+    ```
+
+    Run `/mcp` and authenticate **aomi-agent** if the browser doesn't open on its own.
+  </Tab>
+  <Tab title="Codex">
+    ```bash
+    codex mcp add aomi-agent --url https://chat.aomi.dev/v1/agent/mcp
+    ```
+
+    Codex starts browser authorization when it discovers OAuth. Don't pass `--oauth-resource`. Codex derives it from the URL, and sending it twice gets the request rejected.
+  </Tab>
+  <Tab title="Cursor">
+    Add this to your MCP config:
+
+    ```json mcp.json
+    {
+      "mcpServers": {
+        "aomi-agent": {
+          "url": "https://chat.aomi.dev/v1/agent/mcp"
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Other clients">
+    Configure a Streamable HTTP server at `https://chat.aomi.dev/v1/agent/mcp`. The origin publishes OAuth authorization-server and protected-resource metadata, so a compliant client can discover the login flow by itself.
+  </Tab>
+</Tabs>
+
+Then open a fresh client session and ask:
+
+```text
+Use Aomi to read my USDC balance on Base, then explain the result.
+```
+
+If your client lists tools, you should see `aomi_chat`, `aomi_check`, `aomi_interrupt` and `aomi_list_sessions`.
+
+## Add the Pipeline server
+
+```bash
+codex mcp add aomi-pipeline \
+  --url https://chat.aomi.dev/v1/pipeline/mcp
+codex mcp login aomi-pipeline
+```
+
+Pipeline tools work broad to narrow. Search or list Apps, select one, list its tools, call `aomi_describe_tool` for the live input schema, then run `aomi_call_tool` for a single operation or `aomi_run` when later steps need earlier results. The full tool list is in the [MCP tools reference](/reference/mcp-tools).
+
+## Check the connection
+
+```bash
+codex mcp get aomi-agent
+codex mcp get aomi-pipeline
+```
+
+A quick functional test: ask your client to call `aomi_list_sessions` on the Agent server, or `aomi_list_apps` on the Pipeline server.
+
+Opening the MCP URL in a browser is not a useful test. The endpoints accept only `POST` and `OPTIONS`, so a `GET` can return `404` while the server is fine.
+
+## What OAuth does and doesn't give the client
+
+Each URL is its own OAuth resource. Your client signs in with PKCE and gets a token for that exact URL. An Agent token won't work on Pipeline, and neither works on the REST API.
+
+OAuth authorizes the client to call Aomi. It never gives the client a private key or a reusable signature. When a turn prepares a transaction, it comes back as a pending Action. You approve it in the portal or an authenticated wallet client, then call `aomi_check` again to read the outcome. A local signature or a submitted transaction on its own is not a confirmed result.
+
+Only authorize clients you trust. A client holding a grant can use everything that grant covers until it expires or you revoke it.
+
+## Troubleshooting
+
+| You see | Do this |
+| --- | --- |
+| `401 Unauthorized` | Finish the browser login for this exact server. |
+| `403 Forbidden` | Authenticate this server again. Don't reuse a token from Agent, Pipeline, REST or guest. |
+| `404` on `/api/mcp` | Switch to `/v1/agent/mcp` or `/v1/pipeline/mcp`. |
+| `Failed to fetch metadata document (network error or redirect blocked)` in Codex | Run `codex mcp login aomi-agent --oauth-client-registration dcr` (same for `aomi-pipeline`). |
+| Action stays pending | Approve or reject it in the portal or your wallet client, then call `aomi_check`. |
+| Pipeline rejects your input | Call `aomi_describe_tool` again. Schemas are live and can change. |
+
+## Next steps
+
+- Watch Claude Code prepare a swap through MCP: [Use Aomi MCP with Claude Code](/tutorials/mcp-claude-code)
+- Look up every tool and OAuth scope: [MCP tools reference](/reference/mcp-tools)

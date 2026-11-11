@@ -1,0 +1,104 @@
+---
+title: CLI reference
+description: Commands, global flags, environment variables and local state for the aomi client CLI.
+keywords: [aomi cli, commands, flags, environment variables, AOMI_BACKEND_URL]
+---
+
+Package: `@aomi-labs/cli`. Run `aomi --help` and `aomi <command> --help` for the exact options in your installed version. Commands can differ between versions, and `--help` is authoritative for your binary.
+
+## Agent
+
+| Command | Purpose |
+| --- | --- |
+| `aomi` | Interactive prompt (needs a TTY) |
+| `aomi --prompt "<text>"` | One prompt, then exit |
+| `aomi chat "<text>"` | Send one message. `-v` / `--verbose` streams tool calls and events |
+| `aomi session list` | List local session records |
+| `aomi session new` | Create a session and make it active |
+| `aomi session resume <id>` | Resume `session-N` or a backend session ID |
+| `aomi session status` | Fetch the active session's state |
+| `aomi session log` | Show conversation history |
+| `aomi session interrupt` | Interrupt the active turn |
+| `aomi session close` | Clear the active local session pointer |
+| `aomi session delete <id>` | Delete one local record |
+| `aomi model list` / `set <rig>` / `current` | List, set or show the session's model |
+| `aomi app list` | List Apps in the selected environment |
+| `aomi app current` | Show routing mode and the pinned App |
+
+Interactive prompt commands: `/mode auto`, `/mode direct [app]`, `/app <name>`, `/model list`, `/model show`, `/key <provider:key>`, `:exit`.
+
+## Transactions and wallets
+
+| Command | Purpose |
+| --- | --- |
+| `aomi tx list` | Fetch Actions for the active session |
+| `aomi tx simulate <id...>` | Simulate pending EVM Actions as one batch, in order |
+| `aomi tx export <id...>` | Export pending EVM Actions for another wallet. `--format eip5792` (default), `moss` or `metamask` |
+| `aomi tx sign <id...>` | Execute pending Actions with your configured signer |
+| `aomi chain list` / `set <id>` / `current` | Built-in EVM chains and the active chain ID |
+| `aomi wallet set <hex-key>` | Save an EVM signer to the local session file |
+| `aomi wallet set --solana <base58-key> [--cluster <name>]` | Save a Solana signer |
+| `aomi wallet current` | Show configured wallets |
+
+## Account
+
+| Command | Purpose |
+| --- | --- |
+| `aomi account login` | Sign in with the OAuth device flow |
+| `aomi account login --wallet` / `--solana` | Sign in with SIWE or SIWS using your configured signer |
+| `aomi account whoami` | Show the signed-in account |
+| `aomi account links` | List login methods and linked wallets |
+| `aomi account credits show` | Allowance, balance and activity |
+| `aomi account logout` | Revoke or clear login state and saved keys |
+
+## Pipeline
+
+| Command | Purpose |
+| --- | --- |
+| `aomi pipeline apps [-q text]` | List Apps |
+| `aomi pipeline app <name>` | Describe one App |
+| `aomi pipeline skills [-q text]` | List skills |
+| `aomi pipeline operations --app <app>` | List an App's operations |
+| `aomi pipeline operation <name> --app <app>` | Read an operation's schema |
+| `aomi pipeline invoke <name> --app <app> --arguments <input>` | Validate and run one operation |
+| `aomi pipeline build <name> --app <app> --arguments <input>` | Build and simulate one operation |
+| `aomi pipeline evm build\|stage\|simulate\|commit <input>` | Run one EVM Build stage |
+| `aomi pipeline svm build\|stage\|simulate\|commit <input>` | Run one Solana Build stage |
+
+`--arguments` and `<input>` take inline JSON, a path, `@path`, or `-` for stdin. Pass the complete staged value to `simulate` and the complete simulated value to `commit`. Don't rebuild them from printed fields.
+
+## Configuration
+
+| Command | Purpose |
+| --- | --- |
+| `aomi config current` | Show the saved backend URL |
+| `aomi config set-backend <url>` | Save a backend URL |
+| `aomi secret add NAME=value` | Send a temporary secret for the active session |
+| `aomi secret list` / `clear` | List or clear temporary secrets |
+
+## Global flags
+
+Flags override environment variables.
+
+| Flag | Environment variable | Purpose |
+| --- | --- | --- |
+| `--backend-url <url>` | `AOMI_BACKEND_URL` | API origin. Defaults to `https://chat.aomi.dev` |
+| `--api-key <key>` | `AOMI_API_KEY` | App key for a private App |
+| `--json` | | JSON output where supported |
+| `--verbose` | | Diagnostics, including local state paths |
+| `--new-session` | | Start a new active session for this command |
+| `--mode auto\|direct` | `AOMI_AGENT_MODE` | Routing mode |
+| `--app <name>` | `AOMI_APP` | Pin an App (implies Direct) |
+| `--application-id <id>` | `AOMI_APPLICATION_ID` | Pin a hosted App by ID (implies Direct) |
+| `--model <rig>` | `AOMI_MODEL` | Model for the session |
+| `--chain <id>` | `AOMI_CHAIN_ID` | EVM chain context |
+| `--public-key <address>` | `AOMI_PUBLIC_KEY` | EVM address for wallet context |
+| `--private-key <hex>` | `PRIVATE_KEY` | One-off EVM signer |
+| `--solana-private-key <key>` | `SOLANA_PRIVATE_KEY` | One-off Solana signer |
+| `--cluster <name>` | `AOMI_SOLANA_CLUSTER` | `mainnet-beta`, `devnet` or `testnet` |
+| `--rpc-url <url>` | `CHAIN_RPC_URL` | RPC used for wallet execution |
+| | `AOMI_STATE_DIR` | Local state root. Defaults to `~/.aomi` |
+
+## Local state
+
+Sessions live under `AOMI_STATE_DIR` (default `~/.aomi`): one `sessions/session-N.json` per session, file mode `0600`, and `active-session.txt` pointing at the active one. A record can hold credentials, refresh grants and saved signing keys. Don't commit it or paste it into logs.
