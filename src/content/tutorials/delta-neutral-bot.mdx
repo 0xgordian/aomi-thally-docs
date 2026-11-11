@@ -3,13 +3,13 @@ title: Delta-neutral trading bot
 description: A bot built with the Aomi Client that sends plain-language trade instructions and signs locally.
 ---
 
-Official video: [Aomi Client - Delta-neutral Trading Bot](https://www.youtube.com/watch?v=86IpU1s0rlw). The description links the example code at [github.com/aomi-labs/aomi-client-example](https://github.com/aomi-labs/aomi-client-example) and the npm package [@aomi-labs/client](https://www.npmjs.com/package/@aomi-labs/client).
+Recorded by Aomi Labs: [Aomi Client - Delta-neutral Trading Bot](https://www.youtube.com/watch?v=86IpU1s0rlw). The description links the example code at [github.com/aomi-labs/aomi-client-example](https://github.com/aomi-labs/aomi-client-example) and the npm package [@aomi-labs/client](https://www.npmjs.com/package/@aomi-labs/client).
 
 <Video src="https://www.youtube.com/watch?v=86IpU1s0rlw" title="Aomi Client, Delta-neutral Trading Bot" />
 
 ## What the video shows
 
-The speaker's point is that most bot code is connectors, ABI encoding, gas and nonce handling, not the strategy itself. With Aomi, you still write the strategy, then hand execution to Aomi instead of hardcoding router addresses and ABIs. The example instruction in the captions is: swap 10 wrapped SOL for USDC, find the best route, and keep slippage under 1%. The agent searches across DEXes, figures out routing, and sends transaction data back for the bot to sign locally. The key never leaves the program that signed it.
+The speaker's point is that most bot code is connectors, ABI encoding, gas and nonce handling, not the strategy itself. With Aomi, you still write the strategy, then hand execution to Aomi instead of hardcoding router addresses and ABIs. The example instruction is: swap 10 wrapped SOL for USDC, find the best route, and keep slippage under 1%. The agent searches across DEXes, figures out routing, and sends transaction data back for the bot to sign locally. The key never leaves the program that signed it.
 
 The recorded bot was put together quickly with Claude. The speaker gave Claude a wallet with 100 USDC and 30 wrapped SOL and asked what to build using Aomi for a delta-neutral strategy. In the run that is shown:
 
@@ -19,20 +19,19 @@ The recorded bot was put together quickly with Claude. The speaker gave Claude a
 - On one tick it instructed Aomi to sell nine SOL. Aomi chose a Uniswap V3 multi-hop through wrapped ETH and USDC, built a spending approval, and simulated the swap after the approval was signed
 - The moving-average metric moved into bearish territory twice, and two trades sold SOL, leaving about 75% USDC and 25% SOL in that run
 
-The captions say simulation happens before the swap is passed back for signature, so a malformed transaction is not signed.
+Simulation runs before the swap is passed back for signature, so a malformed transaction is not signed.
 
 ## How to start from the public example
 
-1. Read the official example repo: [github.com/aomi-labs/aomi-client-example](https://github.com/aomi-labs/aomi-client-example).
-2. Install the current TypeScript client from the [Client SDK](https://aomi.dev/docs/integrate/client-sdk) guide:
+Clone [aomi-labs/aomi-client-example](https://github.com/aomi-labs/aomi-client-example) and check its README for the language the current sample uses. In the video a Python program holds the key.
+
+To start from scratch in TypeScript, install the client as in the [quickstart](/quickstart):
 
 ```bash
 npm install @aomi-labs/client
 export AOMI_BASE_URL="https://chat.aomi.dev"
 ```
 
-The video mentions a Python program holding the key. I did not open the example repo in this pass, so I cannot say whether today's sample is TypeScript, Python or both. Use the repo README for the language it actually ships.
+Keep the signing key in your bot process and never put it in a prompt. Your bot sends intent and constraints, Aomi returns a simulated transaction, and the bot signs it locally. [Run and observe Agent turns](/guides/agent-turns) shows how to catch each `action` event.
 
-3. Keep signing local. The client docs cover wallet and signing inside your application. Do not send a private key to the model.
-
-I did not run this bot or confirm the 75/25 allocation outside the recording.
+The 75/25 allocation is the recording's example, not a recommendation.

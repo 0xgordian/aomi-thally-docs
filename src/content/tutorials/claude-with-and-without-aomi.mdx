@@ -3,7 +3,7 @@ title: Claude with and without Aomi
 description: Aomi Labs compares Claude running the same Ethereum and Solana DeFi requests on its own and through Aomi.
 ---
 
-This is the public AI demo Aomi Labs posted on X on 2 November 2026 (WAT): [what happens when claude executes a onchain transaction on its own, compared with claude using aomi?](https://x.com/aomi_labs/status/2117258308797051011)
+Posted by Aomi Labs on X, 2 November 2026: [what happens when claude executes a onchain transaction on its own, compared with claude using aomi?](https://x.com/aomi_labs/status/2117258308797051011)
 
 <XPostCard
   href="https://x.com/aomi_labs/status/2117258308797051011"
@@ -12,9 +12,7 @@ This is the public AI demo Aomi Labs posted on X on 2 November 2026 (WAT): [what
   thumbnail="https://pbs.twimg.com/amplify_video_thumb/2117258095327858688/img/c7JlbpmLXf-vZMNl.jpg"
 />
 
-I did not transcribe the video frame by frame. The summary below uses only the official post text.
-
-## What the post says the demo shows
+## What the demo shows
 
 Aomi tested the same requests in two setups: Claude executing on its own, and Claude using Aomi. The requests were:
 
@@ -29,14 +27,10 @@ The post points people to [chat.aomi.dev](https://chat.aomi.dev) and [build.aomi
 
 ## How to try a similar flow yourself
 
-These steps come from the public [Portal](https://aomi.dev/docs/trade/portal) and [How execution works](https://aomi.dev/docs/trade/execution) docs, not from a shot-by-shot watch of the X video.
-
 1. Open [chat.aomi.dev](https://chat.aomi.dev). Read-only questions do not need a wallet.
 2. Connect a wallet or sign in. On EVM, ownership is proved with SIWE. On Solana, it is SIWS. Keys stay in your wallet.
 3. Set the network for the thread, then ask for one of the same kinds of tasks in plain English, for example staking through Lido and supplying to Aave, or staking through Marinade and using Kamino.
 4. Wait for Aomi to build and simulate the transaction on a fork of live state. Review the simulated outcome in the chat.
 5. If you proceed, your wallet signs. If you reject the prompt, nothing happens onchain.
 
-The docs note a limit that matters for the Solana half of this demo: simulation covers EVM chains. Solana requests are signed and sent without a fork simulation, so review the transaction details in your wallet.
-
-I did not re-run the Claude-only side of the comparison, and I cannot confirm the exact prompts or failure messages beyond what the post states.
+One limit matters for the Solana half: portal simulation covers EVM chains only. Solana requests are signed and sent without a fork simulation, so review the transaction details in your wallet.

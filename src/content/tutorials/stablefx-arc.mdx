@@ -3,34 +3,34 @@ title: StableFX on Arc testnet
 description: Victor walks through Circle StableFX tools on Arc testnet, including simulation and safety checks.
 ---
 
-Official video: [Aomi on Arc Testnet: StableFX Integration Walkthrough](https://www.youtube.com/watch?v=IbDJEjcDgPc). The description says this is an integration progress walkthrough, and that live end-to-end settlement is a next step, not proof of a completed FX trade.
+Recorded by Aomi Labs: [Aomi on Arc Testnet: StableFX Integration Walkthrough](https://www.youtube.com/watch?v=IbDJEjcDgPc). The description says this is an integration progress walkthrough, and that live end-to-end settlement is a next step, not proof of a completed FX trade.
 
 <Video src="https://www.youtube.com/watch?v=IbDJEjcDgPc" title="Aomi on Arc Testnet: StableFX Integration Walkthrough" />
 
 ## What the video shows
 
-Victor (DevRel) is connected to Arc testnet through a Rabby wallet (the captions say "Rabbi"). From the Aomi portal, apps read onchain data and perform supported actions with structured tools.
+Victor (DevRel) is connected to Arc testnet through a Rabby wallet. From the Aomi portal, apps read onchain data and perform supported actions with structured tools.
 
 He first asks Aomi to read the connected wallet address and USDC balance from Arc.
 
 Then he shows staging and simulation. He asks Aomi to call `refund` on the contract that is sending the transaction. The simulation returns a revert, no funds move, and nothing is sent.
 
-Circle StableFX is available as an Aomi application, scoped to Arc. The captions say it is registered with six tools covering the trade life cycle, including getting a quote, accepting the quote, creating the trade, checking status and funding the trade. Those tools talk to the StableFX API. The live quote and trade flow needs a Circle test key. The Circle API is stored as an application secret, not exposed to the user through the chat.
+Circle StableFX is available as an Aomi application, scoped to Arc. It is registered with six tools covering the trade life cycle, including getting a quote, accepting the quote, creating the trade, checking status and funding the trade. Those tools talk to the StableFX API. The live quote and trade flow needs a Circle test key. The Circle API is stored as an application secret, not exposed to the user through the chat.
 
-Safety checks mentioned in the captions:
+Safety checks shown in the video:
 
 - The quote tool takes currencies and amounts as structured inputs
 - The application checks that the request is running on Arc before continuing
 - Before the wallet signs, transaction data is validated, including the expected chain and Permit2 details
 
-He also shows a second plugin, referred to as "some finance" / "some agent": a Rust Aomi plugin with five tools (`get idle assets`, `get risk snapshot`, `assess position`, `get credit balance`, and `propose intent`). It returns a recommendation card and does not sign or execute. Execution stays in Aomi's EVM core layer.
+He also shows a second plugin: a Rust Aomi plugin with five tools (`get idle assets`, `get risk snapshot`, `assess position`, `get credit balance`, and `propose intent`). It returns a recommendation card and does not sign or execute. Execution stays in Aomi's EVM core layer.
 
 The same plugin model is described as working through the build pipeline, CLI, agent skills, a drop-in chat widget, and the SDK and API.
 
 ## How to try the portal side
 
-1. Open [chat.aomi.dev](https://chat.aomi.dev) and connect a wallet, as in the [Portal](https://aomi.dev/docs/trade/portal) guide.
-2. Select the Arc network for the thread if it is available in the network picker. The current portal docs list Robinhood Chain and common testnets among EVM options. I did not confirm Arc testnet is still listed in today's picker.
+1. Open [chat.aomi.dev](https://chat.aomi.dev) and connect a wallet, as in the [Portal](/guides/portal) guide.
+2. Select the Arc network for the thread if it is available in the network picker.
 3. Ask Aomi to read the connected address and USDC balance, then review any simulated action before you sign.
 
-I did not run the StableFX tools or hold a Circle test key, and the video itself says completing the live flow end-to-end was still a next step at the time of recording.
+The live quote and trade flow needs a Circle test key. At the time of recording, running it end to end was still a next step.

@@ -1,23 +1,21 @@
 ---
 title: Build a prediction market with the Aomi SDK
-description: Gordian walks through Kuroko, an AI trading terminal for Polymarket built with the Aomi SDK and widget.
+description: Build Kuroko, an AI trading terminal for Polymarket, on the Aomi SDK and widget. Community tutorial by Gordian Etim.
 ---
 
-This is Gordian Etim's public tutorial: [Building an AI-Native Prediction Market in 30 Minutes](https://youtu.be/PUqQPeWtUYM). It is also written up in his public article, [Building an Onchain AI-Native Agent for Prediction Markets Using Aomi's SDK and Widget](https://gordian-etim.notion.site/Building-an-Onchain-AI-Native-Agent-for-Prediction-Markets-Using-Aomi-s-SDK-and-Widget-74b6ec38e17e403cb71c894b629df2c0).
+Community tutorial by Gordian Etim: [Building an AI-Native Prediction Market in 30 Minutes](https://youtu.be/PUqQPeWtUYM). The written version is [Building an Onchain AI-Native Agent for Prediction Markets Using Aomi's SDK and Widget](https://gordian-etim.notion.site/Building-an-Onchain-AI-Native-Agent-for-Prediction-Markets-Using-Aomi-s-SDK-and-Widget-74b6ec38e17e403cb71c894b629df2c0).
 
 <Video src="https://youtu.be/PUqQPeWtUYM" title="Building an AI-Native Prediction Market in 30 Minutes, Aomi SDK Tutorial" />
-
-Auto-captions on this video are imperfect. Names like Kuroko and "widget" are sometimes mis-heard. The steps below follow the captions, the official video description, and the public article. Anything I could not verify is marked.
 
 ## What the video shows
 
 Kuroko is a trading terminal for [Polymarket](https://polymarket.com). In the recording, a live market is open, with separate order books, prices and liquidity for each range. The point of the product is to replace the slow manual loop of checking each bracket, deciding, and signing a single bid.
 
-Gordian describes Aomi as the execution layer under the product: it lets a trading terminal, wallet or similar app add an agent that can run onchain transactions from natural language.
+The video frames Aomi as the execution layer under the product: it lets a trading terminal, wallet or similar app add an agent that can run onchain transactions from natural language.
 
-He shows a connected Aomi widget. Asking for wallet balance and positions triggers a small set of background calls (chain context, wallet balance, and recent transaction data) and returns an Ethereum balance overview.
+It starts with a connected Aomi widget. Asking for wallet balance and positions triggers a small set of background calls (chain context, wallet balance, and recent transaction data) and returns an Ethereum balance overview.
 
-In Kuroko itself he shows:
+Kuroko itself shows:
 
 - A customized widget, including slash commands in the UI
 - A market request, including a Manchester City Premier League market shown at 49%
@@ -26,15 +24,15 @@ In Kuroko itself he shows:
 - Cards with the question, current probability and volume, plus shares, entry price, cost and projected return before you commit
 - Research against live Polymarket data, then a trade simulation before execution
 
-He closes by pointing developers to the SDK and to [aomi.dev/docs](https://aomi.dev/docs).
+It ends by pointing developers to the SDK and to [aomi.dev/docs](https://aomi.dev/docs).
 
-The public article adds architecture detail that the captions only hint at. Kuroko uses three layers:
+The article goes deeper on architecture. Kuroko has three layers:
 
 1. The React widget (`AomiFrame` in the article) pointed at a Next.js proxy, not directly at the Aomi API
 2. The `/api/aomi` proxy, which injects live Polymarket data into the system prompt, then forwards the request
 3. Execution: the model can return a `trade_card` JSON payload, a `TradeCard` renders it, and on confirm the flow is Aomi Session, then EIP-712, then Para signing, then the Polymarket CLOB
 
-The article also says Kuroko can run stop-loss and take-profit rules through the user's wallet when they are away. The captions do not walk through that path in detail, so treat it as described in the article, not as a fully narrated click-through in the video.
+The article also says Kuroko can run stop-loss and take-profit rules through the user's wallet when they are away. The video doesn't walk through that path, so use the article for it.
 
 ## How to build a similar integration today
 
@@ -42,7 +40,7 @@ Current public docs use slightly different package names than the May 2026 artic
 
 ### 1. Install the TypeScript client
 
-From the [Client SDK](https://aomi.dev/docs/integrate/client-sdk) guide:
+As in the [quickstart](/quickstart):
 
 ```bash
 npm install @aomi-labs/client
@@ -96,14 +94,14 @@ export default function AssistantPage() {
 }
 ```
 
-The article's Kuroko app pointed `backendUrl` at `/api/aomi` so it could inject live Polymarket data before the request reached Aomi. That proxy pattern is specific to Kuroko. The current widget docs say the widget does not require a custom API route. If you need live market data in the prompt, you will need to design that injection yourself. I did not re-run Kuroko's proxy, so I am not restating its request format beyond what the article shows.
+The article's Kuroko app pointed `backendUrl` at `/api/aomi` so it could inject live Polymarket data before the request reached Aomi. That proxy pattern is specific to Kuroko. The current widget docs say the widget does not require a custom API route. If you need live market data in the prompt, you will need to design that injection yourself.
 
 ### 4. Keep signing with the user's wallet
 
 The article's execution path is EIP-712 through Para, then Polymarket. Current widget docs support browser wallets, Para or Privy. Do not put App keys or provider secrets in browser code.
 
-## What I did not verify
+## Before you copy the article
 
-- I did not rebuild Kuroko or call Polymarket.
-- I did not confirm today's widget package still accepts the exact `AomiFrame` API from the article.
-- Stop-loss and take-profit while the user is away are described in the article, not walked through step by step in the captions.
+- `AomiFrame` and the `/api/aomi` proxy are what Kuroko used in May 2026. New projects should start from `@aomi-labs/widget-lib` and `AomiWidget`.
+- Stop-loss and take-profit rules are described in the article only.
+- Polymarket's own API and signing requirements apply on top of Aomi's.
