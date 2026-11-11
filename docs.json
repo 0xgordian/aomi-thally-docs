@@ -19,6 +19,10 @@
     "primary": {
       "label": "Quickstart",
       "href": "/quickstart"
+    },
+    "logo": {
+      "light": "/brand/aomi-logo-light.svg",
+      "dark": "/brand/aomi-logo-dark.svg"
     }
   },
   "tabs": [
@@ -212,13 +216,11 @@
         "expect": [
           "/concepts/permission-model"
         ]
-      },
-      {
-        "question": "How do I register an OAuth client?",
-        "expect": [
-          "/guides/authentication"
-        ]
       }
     ]
+  },
+  "favicon": {
+    "light": "/brand/aomi-logo-light.svg",
+    "dark": "/brand/aomi-logo-dark.svg"
   }
 }

@@ -162,7 +162,7 @@ const brandPreset: BrandPresetKey = 'primary'
 export const siteConfig: SiteConfig = {
   name: 'Aomi Docs',
   description:
-    'Turn plain-language instructions into simulated, wallet-signed transactions on EVM chains and Solana.',
+    'Onchain execution infrastructure for agents and apps. Build, simulate, sign and broadcast transactions on EVM chains and Solana from plain-language intent.',
   repoUrl: 'https://github.com/0xgordian/aomi-thally-docs',
   links: [
     { label: 'Quickstart', href: '/quickstart' },

@@ -1,19 +1,23 @@
 ---
 title: Aomi developer docs
 navTitle: Overview
-description: Turn plain-language instructions into simulated, wallet-signed transactions on EVM chains and Solana, from a chat, an MCP client, the CLI, or your own code.
+description: Aomi is onchain execution infrastructure for agents and apps. Send a plain-language instruction from a chat, an MCP client, the CLI or your own code, and Aomi builds, simulates and routes a real transaction to the wallet for signing on EVM chains and Solana.
 mode: home
 keywords: [aomi, onchain ai, agent, transactions, mcp, sdk]
 ---
 
 <Hero
-  title="Turn plain language into simulated onchain transactions"
-  subtitle="Aomi composes transactions on EVM chains and Solana from a plain-language request, simulates them against live chain state, and hands them to your wallet to sign."
+  title="Onchain execution for agents and apps"
+  subtitle="Aomi is the execution harness for onchain AI. Your agent or app sends intent in plain language. Aomi builds the transaction against the protocol's own contracts, simulates it, and routes it to the wallet to sign and broadcast, on EVM chains and Solana."
   primaryLabel="Run the quickstart"
   primaryHref="/quickstart"
   secondaryLabel="How Aomi works"
   secondaryHref="/concepts/how-aomi-works"
 />
+
+One prompt, 37 seconds: Aomi compares routes for a 100 USDC bridge to Arbitrum, simulates it and hands it to your wallet to sign.
+
+<video controls playsInline preload="metadata" poster="/videos/aomi-intro-poster.jpg" src="/videos/aomi-intro.mp4" style={{ width: '100%', borderRadius: '12px', aspectRatio: '16 / 9' }} />
 
 ## Choose where to start
 
@@ -36,7 +40,9 @@ Not writing code? Open the [portal](/guides/portal) at [chat.aomi.dev](https://c
 
 ## What Aomi does
 
-You send an instruction such as "swap 100 USDC for ETH on Base". Aomi reads the chain, composes the transaction against the protocol's contracts, and simulates it on a fork of live chain state. You see the result: balance changes, approvals, fees and gas. Only then does the request go to a wallet for signature.
+Aomi is the layer between an agent's intent and a confirmed transaction. You send an instruction such as "swap 100 USDC for ETH on Base". Aomi reads the chain, picks the protocol and route, composes the transaction against the protocol's contracts, simulates it on a fork of live chain state, and hands it to the wallet to sign and broadcast. Every action goes through that one pipeline: build, simulate, sign, broadcast.
+
+Aomi is also a hosted platform for your own agent. Package your APIs, tools and prompt as an App, and the runtime runs it for you: model calls, per-user threads, chain execution and signing. Users reach it through the portal, a widget in your product, Telegram or the API.
 
 Two rules hold everywhere. A transaction that fails simulation never reaches a signer: you fix the request and Aomi builds a new one. And Aomi never holds your keys. The agent proposes, and your wallet, or a signer you have explicitly authorized, signs.
 

@@ -2,7 +2,7 @@
 
 This walks through how the Aomi developer docs in this repository were built with Thally, from an empty folder to a site with a quickstart, task guides, concept pages, a CLI and SDK reference, an interactive API reference generated from Aomi's OpenAPI document, and 26 video tutorials.
 
-Aomi is a good stress test for a docs platform. It has four ways in (a hosted chat, an MCP server, a CLI and a TypeScript SDK), a Rust plugin system, an HTTP API with 75 operations, and a security model that readers have to understand before they sign anything. If the docs get the structure wrong, people sign transactions they don't understand or give up at the API key step.
+Aomi is onchain execution infrastructure for agents and apps, and it's a good stress test for a docs platform. It has four ways in (a hosted chat, an MCP server, a CLI and a TypeScript SDK), a Rust plugin system, an HTTP API with 75 operations, and a security model that readers have to understand before they sign anything. If the docs get the structure wrong, people sign transactions they don't understand or give up at the API key step.
 
 ## What you need
 

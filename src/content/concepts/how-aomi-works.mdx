@@ -1,10 +1,10 @@
 ---
 title: How Aomi works
-description: The path a request takes from a plain-language prompt to a signed transaction, and the one rule that holds at every step.
+description: How Aomi executes onchain actions for agents and apps, from a plain-language prompt to a broadcast transaction, and the rule that holds at every step.
 keywords: [pipeline, build, simulate, commit, fork, architecture, runtime]
 ---
 
-A model is good at working out what you want and bad at producing calldata you should sign blind. Aomi splits those jobs. The model picks operations and arguments. The runtime stages the transaction, runs it against live chain state, and only passes it on for signature once it has succeeded there.
+Aomi is execution infrastructure: it takes an intent from an agent or app and turns it into a transaction that lands onchain. A model is good at working out what you want and bad at producing calldata you should sign blind, so Aomi splits those jobs. The model picks operations and arguments. The runtime builds the transaction, simulates it against live chain state, gets it signed under the wallet's policy and broadcasts it. Simulation is the gate in the middle of that pipeline, not the whole product.
 
 ## The pipeline
 

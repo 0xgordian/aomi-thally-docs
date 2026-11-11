@@ -1,6 +1,6 @@
 # Aomi Docs
 
-Developer documentation for [Aomi](https://aomi.dev): turn plain-language instructions into simulated, wallet-signed transactions on EVM chains and Solana. Built with [Thally](https://thally.io).
+Developer documentation for [Aomi](https://aomi.dev), onchain execution infrastructure for agents and apps. Aomi turns plain-language intent into real transactions on EVM chains and Solana through one pipeline: build, simulate, sign, broadcast. Built with [Thally](https://thally.io).
 
 ## What's in it
 
