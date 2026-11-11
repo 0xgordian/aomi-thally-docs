@@ -71,7 +71,16 @@ upgrade an existing site or move a production release pointer.
 
 ## Product context
 
-<!-- Add canonical terminology, audience details, and content boundaries here. -->
+Audience: developers integrating Aomi (SDK, HTTP API, MCP, CLI) and teams building Aomi Apps in Rust.
+
+Terminology and casing:
+
+- Aomi, Aomi App (capital A for the product unit), Agent, Pipeline, Action, Build, Commit
+- Portal for chat.aomi.dev, Developer Platform or Aomi Build for build.aomi.dev
+- EVM, Solana (not SVM in prose; `svm` only in code and paths)
+- onchain (one word), MCP, OAuth, SDK, CLI
+
+Content boundaries: only document commands, endpoints and behavior that appear in Aomi's public docs, repos, OpenAPI document or npm packages. If it can't be traced to one of those, leave it out. Portal simulation covers EVM chains; never claim Solana requests are fork-simulated in the portal.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

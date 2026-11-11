@@ -1,29 +1,43 @@
-# Aomi Developer Guide
+# Aomi Docs
 
-A three-page documentation site for Aomi, built with Thally. It covers what Aomi is, how to run your first Agent turn with the SDK, and how to deploy a custom App in Rust.
+Developer documentation for [Aomi](https://aomi.dev): turn plain-language instructions into simulated, wallet-signed transactions on EVM chains and Solana. Built with [Thally](https://thally.io).
+
+## What's in it
+
+| Section | Contents |
+| --- | --- |
+| Documentation | Overview, quickstart, guides for the portal, MCP, CLI, Agent turns, authentication and building an App, plus concepts, troubleshooting and FAQ |
+| Reference | TypeScript SDK, CLI, MCP tools, App manifest, supported chains |
+| API reference | Generated from Aomi's published OpenAPI document (`openapi.yaml`) |
+| Tutorials | 26 recorded walkthroughs, each with a written guide |
 
 ## Run it locally
 
-You need Node.js 20 or later.
+Requires Node.js 20 or later.
 
 ```bash
 npm install
-npx @thallylabs/cli@latest check
-npm run build
 npm run dev
 ```
 
-The dev server starts at http://localhost:3040
+The dev server runs at http://localhost:3040.
 
-## Pages
+## Before you open a pull request
 
-- Introduction: what Aomi does and who it is for
-- Quickstart: install the SDK and send a first instruction
-- Guide: build and deploy a custom Aomi App
-- Tutorials: each public Aomi demo video on its own page, with a short written guide under the embed
+```bash
+npm run check
+npm run build
+```
 
-## How this was built
+## Editing
 
-The writeup is in [ARTICLE.md](./ARTICLE.md). It walks through scaffolding the site, adding the content, and running the Thally check and build, including what was tested and what was not.
+- Pages are MDX files in `src/content/`. Every page needs `title` and `description` frontmatter.
+- Navigation lives in `docs.json`. Add new pages there or they won't appear in the sidebar.
+- `openapi.yaml` is Aomi's published spec from `https://aomi.dev/docs/api-reference/openapi.json`, with `tags` and `summary` added to each operation for navigation. Paths, schemas and descriptions are unchanged. Keep `docs.json` under 5 KB for managed releases.
+- Writing and ownership rules are in [AGENTS.md](./AGENTS.md).
 
-Notes from using the Thally CLI are in [OBSERVATIONS.md](./OBSERVATIONS.md).
+## Sources
+
+Content is based on Aomi's public docs at [aomi.dev/docs](https://aomi.dev/docs), the [aomi-labs](https://github.com/aomi-labs) repositories and the npm registry.
+
+Notes on how the site was built: [ARTICLE.md](./ARTICLE.md). Feedback on Thally: [OBSERVATIONS.md](./OBSERVATIONS.md).

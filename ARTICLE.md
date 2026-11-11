@@ -1,319 +1,167 @@
-# Document Aomi with Thally
+# Ship developer docs for an onchain API with Thally
 
-This is a short developer guide to Aomi's SDK and CLI, in three pages: an introduction to the execution pipeline, a quickstart for Agent turns, and a practical guide for deploying custom Apps. It is meant to help someone integrate Aomi or extend it with plugins.
+This walks through how the Aomi developer docs in this repository were built with Thally, from an empty folder to a site with a quickstart, task guides, concept pages, a CLI and SDK reference, an interactive API reference generated from Aomi's OpenAPI document, and 26 video tutorials.
 
-## Prerequisites
+Aomi is a good stress test for a docs platform. It has four ways in (a hosted chat, an MCP server, a CLI and a TypeScript SDK), a Rust plugin system, an HTTP API with 75 operations, and a security model that readers have to understand before they sign anything. If the docs get the structure wrong, people sign transactions they don't understand or give up at the API key step.
 
-For the local validation path used here, you need Node.js and npm. The project was scaffolded with Node.js v22.23.4 and npm 10.9.9 on Linux.
+## What you need
 
-Have the three page drafts ready based on Aomi's public documentation. This workflow uses the official Thally CLI to create a local project without Cloud sign-in, GitHub App permissions, or managed publishing.
+- Node.js 20 or later and npm (this build used Node.js 22.23.4 and npm 10.9.9 on Linux)
+- The product's public docs, repos and, if it has one, its OpenAPI document
 
-## Research Aomi from public sources
+No Thally Cloud account is needed to build and check the site locally.
 
-Before writing documentation, gather content from Aomi's public materials. This assessment used only publicly accessible sources with no private or internal content.
+## 1. Gather sources before you write anything
 
-### Sources used
+Every command, flag, endpoint and number on the site comes from one of these:
 
-**Main website:**
-- https://aomi.dev - Product overview, features, architecture
-- Content fetched via WebFetch on November 9, 2026
+- Aomi's docs at [aomi.dev/docs](https://aomi.dev/docs), read as Markdown through `/docs/llms.txt` and the `.md` version of each page
+- The published OpenAPI document at `https://aomi.dev/docs/api-reference/openapi.json`
+- The public repos: [aomi-labs/aomi](https://github.com/aomi-labs/aomi), [aomi-labs/aomi-sdk](https://github.com/aomi-labs/aomi-sdk) and [aomi-labs/skills](https://github.com/aomi-labs/skills)
+- The npm registry, for `@aomi-labs/client` (0.11.2) and `@aomi-labs/cli` (0.2.0)
 
-**Official documentation:**
-- https://aomi.dev/docs - Introduction and overview
-- https://aomi.dev/docs/build/first-app - Rust App quickstart
-- https://aomi.dev/docs/integrate/client-sdk - TypeScript SDK integration
-- https://aomi.dev/docs/guides/hackathon - Fast start guide
-- All documentation fetched via WebFetch on November 9, 2026
+If a fact couldn't be traced to one of these, it isn't on the site. That rule cost a few nice-sounding sentences. One example: the Aomi intro says every chain is simulated on a fork, but the portal guide says Solana requests in the portal are signed without one. The site says the second thing, on every page where it matters.
 
-**GitHub repositories (public):**
-- https://github.com/aomi-labs/aomi - Main repo with React widget and CLI
-- https://github.com/aomi-labs/aomi-sdk - Rust SDK for plugin development
-- https://github.com/aomi-labs/docs - Documentation source
-- https://github.com/aomi-labs/skills - Skills and command references
-- Repository information gathered via WebSearch on November 9, 2026
+Then run the product. The quickstart's guest-mode example was run against `https://chat.aomi.dev`: the first turn went through, and a fast second call came back `429` with `guest_concurrency_limit`. That error is now a note in the quickstart and an entry in Troubleshooting, because the next developer will hit it too.
 
-**Verified package versions:**
-- npm registry check confirmed @aomi-labs/client: 0.11.2
-- npm registry check confirmed @aomi-labs/cli: 0.2.0
-- Verified by running `npm view @aomi-labs/client version` and `npm view @aomi-labs/cli version`
-
-## Install and verify Aomi packages
-
-Installed Aomi packages locally to confirm versions and test CLI help output:
-
-```bash
-mkdir /tmp/aomi-test && cd /tmp/aomi-test
-npm install @aomi-labs/cli @aomi-labs/client
-```
-
-Installation completed successfully in approximately 9 seconds. Verified CLI with:
-
-```bash
-npx @aomi-labs/cli --help
-```
-
-Output confirmed CLI version 0.2.0 with expected command structure: chat, session, transaction, app, model, chain, and wallet commands. Help output showed:
-- Interactive REPL mode available
-- One-shot prompt mode with `--prompt`
-- Guest mode by default (no API key required)
-- Backend URL configurable with `--backend-url`
-
-The CLI is publicly available, and the documented commands exist.
-
-**What was tested:** The SDK example from the official documentation was executed in guest mode. The client successfully connected to `https://chat.aomi.dev` and attempted to send messages. The first message was accepted, but the second hit a 429 rate limit (`guest_concurrency_limit`). This confirms the SDK transport works, guest mode exists, and the API is reachable without authentication.
-
-**What was not tested:** No successful Agent turn completions due to rate limits. No transactions were simulated or signed. No wallet connections were made. No `aomi chat` CLI commands executed against the live API. All transaction and signing behavior remains untested.
-
-## Scaffold the project with official Thally CLI
-
-Used the Thally CLI to create an isolated local evaluation:
+## 2. Scaffold the project
 
 ```bash
 npx --yes create-thally-docs@latest aomi-docs --yes --install
 cd aomi-docs
 ```
 
-Scaffold completed in approximately 19 seconds. The `--yes` flag accepts defaults and `--install` runs `npm install` automatically.
+This took about 19 seconds and produced a buildable Next.js project. Three files matter at the start:
 
-Output confirmed:
-- Project name: Aomi Docs
-- Git repository initialized
-- All dependencies installed
-- Ready for local preview
+- `src/content/` holds one MDX file per page
+- `docs.json` holds tabs, groups and navigation order
+- `src/data/site.ts` holds the site name, description and header links
 
-Package versions from scaffolded `package.json`:
-- next: 16.4.1
-- @thallylabs/cli: 2.1.10
-- Node runtime: v22.23.4
+Read `AGENTS.md` before touching anything else. It lists which files are runtime-owned and must only change through Thally's update workflow.
 
-## Read the project structure
+## 3. Design the information architecture first
 
-The scaffold created `AGENTS.md` with ownership rules. Key points remained the same as the Python version:
-- Pages are MDX files in `src/content/`
-- Navigation in `docs.json`
-- Site identity in `src/data/site.ts`
-- Runtime-owned files are machine-managed
+The first version of this site had three pages in one group. It read like a summary of Aomi's docs, not a docs site. The rebuild started from what a reader is trying to do, sorted with the Diataxis split that Thally's own [content types guide](https://docs.thally.io/guides/content-types) uses: tutorials, how-to guides, concepts and reference.
 
-## Add the Aomi content
-
-Created three MDX files with frontmatter based on Aomi's public documentation:
-
-**src/content/introduction.mdx**
-```yaml
----
-title: Build with Aomi
-description: Use Aomi to turn plain-language instructions into simulated, wallet-signed transactions across EVM and Solana.
-mode: home
----
+```text
+Documentation
+  Get started      Overview, Quickstart
+  Use Aomi         Portal, MCP, CLI
+  Integrate        Agent turns, Authentication
+  Build Apps       Your first App
+  Concepts         How Aomi works, Signing and permissions, Apps and routing, Glossary
+  Help             Troubleshooting, FAQ
+Reference          TypeScript SDK, CLI, MCP tools, App manifest, Supported chains
+API reference      Overview + 75 generated endpoint pages
+Tutorials          26 recorded walkthroughs with written guides
 ```
 
-Content covers:
-- What Aomi does (execution pipeline: build, simulate, sign, broadcast)
-- Three ways to use it (Portal, CLI, SDK)
-- Non-custodial design principles
-- Supported chains (10+: Ethereum, Arbitrum, Base, Solana, etc.)
-- Requirements and verified package versions
+A few decisions behind it:
 
-**src/content/quickstart.mdx**
-```yaml
----
-title: Run your first Agent turn
-description: Install the Aomi SDK and send your first plain-language instruction to the agent.
----
-```
+- The landing page routes people instead of describing the product. Four cards up top, one per entry path (SDK, MCP, CLI, App), and a table that tells you which auth each path needs on day one. Stripe and Supabase open the same way, and it stops a CLI user from reading SDK docs.
+- Use is separate from Integrate. Someone pasting an MCP URL into Claude Code and someone writing a Node service have nothing in common after the first minute.
+- Security is a concept page, not a warning box. "Signing and permissions" explains who controls what. Task pages link to it at the moment it matters, such as choosing a signing policy.
+- Reference pages are tables. Commands, flags, environment variables, MCP tools, OAuth scopes, `UserState` fields. No narrative. Guides link into them.
+- Troubleshooting is keyed by the literal error. Headings are the strings people paste into search: `invalid_target`, `insufficient_scope`, `SDK version mismatch: plugin=X, host=Y`.
 
-Covers SDK installation, environment setup, and the example Agent turn from official docs. The SDK example was later run in guest mode against the live API, as described below. Transaction and signing steps are still marked untested.
-
-**src/content/guides/first-app.mdx**
-```yaml
----
-title: Deploy your first Aomi App
-description: Build and deploy a custom Aomi App plugin in Rust to extend the runtime with your own tools.
----
-```
-
-Documents the Rust App structure (aomi.toml, Cargo.toml, src/lib.rs) from the official quickstart. Explicitly marked as untested since Rust toolchain was not installed and no actual builds or deploys were performed.
-
-## Configure navigation
-
-Updated `docs.json` to reflect the three-page structure:
+Write `docs.json` once the tree is settled:
 
 ```json
 {
   "tabs": [
     {
-      "tab": "Guide",
+      "tab": "Documentation",
       "groups": [
-        {
-          "group": "Get started with Aomi",
-          "pages": [
-            "introduction",
-            "quickstart",
-            "guides/first-app"
-          ]
-        }
+        { "group": "Get started", "pages": ["introduction", "quickstart"] },
+        { "group": "Use Aomi", "pages": ["guides/portal", "guides/mcp", "guides/cli"] }
       ]
     }
   ]
 }
 ```
 
-Simplified from the starter's multiple tabs to match a focused three-page guide.
+## 4. Use one template per page type
 
-## Set the site identity
+Every task page follows the same order: the result in one or two sentences, prerequisites, numbered steps with real commands, what success looks like, likely failures, then next steps. The quickstart ends with the literal output (`cobalt`), not "you should see a response".
 
-Updated `src/data/site.ts`:
+Thally's frontmatter carries metadata that would otherwise clutter the page:
 
-```typescript
-export const siteConfig: SiteConfig = {
-  name: 'Aomi Developer Guide',
-  description: 'Build with Aomi: execution harness for onchain AI across EVM and Solana',
-  repoUrl: '',
-  links: [
-    { label: 'Get started', href: '/quickstart' },
-    { label: 'Aomi docs', href: 'https://aomi.dev/docs' },
-    { label: 'Portal', href: 'https://chat.aomi.dev' },
-  ],
-  brand: brandPresets[brandPreset],
-  brandPreset,
-  brandPresets,
+```yaml
+---
+title: Quickstart
+description: Install the Aomi TypeScript SDK and run a two-turn Agent conversation from Node.js. No API key needed.
+timeEstimate: 5 min
+keywords: [install, sdk, typescript, node, guest mode, first request]
+---
+```
+
+`navTitle` keeps sidebar labels short ("MCP") while page titles stay descriptive ("Connect an MCP client").
+
+The built-in components did most of the formatting work: `CodeGroup` for npm, pnpm and yarn; `Tabs` for Claude Code, Codex and Cursor; `Steps` for the deploy flow; `AccordionGroup` for App build errors; Mermaid for the pipeline diagram. Every code block has a language tag and, where it helps, a filename (`example.ts`, `Cargo.toml`).
+
+## 5. Generate the API reference from OpenAPI
+
+Aomi publishes an OpenAPI 3.1 document. Save it as `openapi.yaml` in the project root and bind it to a tab:
+
+```json
+{
+  "tab": "API reference",
+  "groups": [{ "group": "Overview", "pages": ["reference/api"] }],
+  "api": {
+    "source": "openapi.yaml",
+    "tagsOrder": ["Agent", "Agent sessions", "Pipeline catalog", "Pipeline EVM lifecycle", "Account", "Service"],
+    "defaultGroup": "Service"
+  }
 }
 ```
 
-## Validate and build
+Aomi's spec has no tags and no summaries, so out of the box all 75 operations land in one group, titled by raw `operationId` (`describeevmbuild`). The first fix was an `overrides` entry per operation in `docs.json`. That works locally, but it pushed `docs.json` to 16 KB, and Thally caps the `docs.json` binding for managed releases at 5 KB. So the grouping moved into the spec instead: each operation got a `tags` entry based on its path and a `summary` such as "Start a turn". Paths, methods, operation IDs, schemas and descriptions are untouched, and `docs.json` is back under 5 KB.
 
-Ran Thally validation checks:
+The hand-written overview page covers what a generated page can't: base URLs, bearer tokens, the `Idempotency-Key` rule and a typical Agent loop over HTTP.
+
+## 6. Turn videos into tutorials people can follow
+
+Aomi has a lot of recorded demos. A wall of embeds isn't documentation, so each video got its own page with the same template: what happens on screen, a "Try it yourself" section using today's product, a caveat that amounts and routes are examples, and links into the guides. Where the current product differs from the recording (the old `/api/mcp` path, an earlier MCP screen), the page says so and points to the current guide.
+
+## 7. Cut the filler
+
+The last pass was a line edit of every page. Rules that did the most work:
+
+- Second person, active voice, present tense
+- Lead with the task, not with context the reader already has
+- Concrete over general: `429` with `guest_concurrency_limit`, not "you may hit rate limits"
+- No first-person notes about what the author did or didn't test. Those belong in this article, not on the site.
+- No em dashes, and none of the usual filler words
+
+Before: "This URL routes your requests to the public Aomi runtime without requiring authentication for guest mode."
+
+After: "It runs in guest mode, so you don't need an API key or an OAuth client."
+
+## 8. Check and build
 
 ```bash
-npx --yes @thallylabs/cli@latest check
-```
-
-Output:
-```
-Linting /workspace/aomi-docs...
-✅ No issues found.
-```
-
-Check took approximately 8 seconds. Validated content structure, navigation references, and frontmatter completeness.
-
-```bash
+npm run check
 npm run build
 ```
 
-Build completed successfully in approximately 25 seconds. Output showed:
-- 3 content pages compiled
-- 47 total static pages generated
-- All routes prerendered
-- TypeScript compilation passed
+`check` finished with "No issues found." in a few seconds. It catches navigation references and missing frontmatter. `build` prerenders the content pages and all 75 API operation pages.
 
-No warnings or errors related to the custom content.
+Then start the site and open `/api/agent-readiness`. It scores how usable the docs are for AI agents and checks things `check` doesn't, including internal links and anchors, code language tags, page size and descriptions. This site scores 89 out of 100. The one failing check is OpenAPI examples: Aomi's spec ships request and response examples for only a few operations, and that has to be fixed in the source spec, not in the docs. The `readiness.goldenQuestions` block in `docs.json` lists real questions ("How do I connect Claude Code to Aomi?") and checks that search returns the right page for each.
 
-## Preview locally
+## What was and wasn't run
 
-Started the dev server:
+Run: the npm installs, `aomi --help`, the SDK guest-mode example (first turn succeeded, second returned `429`), Thally scaffold, check and build.
 
-```bash
-npm run dev
-```
+Not run: a signed transaction, a wallet connection, a Rust build of the example App, or a deploy through `aomi-build`. Those pages are taken from Aomi's published docs, and the example output on the App page is the output Aomi documents.
 
-Server started on port 3040:
-```
-▲ Next.js 16.4.1 (Turbopack)
-- Local:         http://localhost:3040
-✓ Ready in 257ms
-```
+## Versions
 
-Manual verification via curl confirmed the site was serving:
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3040/
-```
-
-Returned: 200
-
-Desktop and mobile viewport checks delegated to automated browser testing. The site structure and build validated successfully.
-
-## Obstacles and resolutions
-
-### SDK guest mode rate limiting
-
-**Challenge:** Testing the SDK example in guest mode to verify the transport layer worked.
-
-**Resolution:** Successfully executed the documented example. The SDK connected to the API and sent the first message, but the second message hit a 429 rate limit with `guest_concurrency_limit`. This is expected behavior for rapid successive calls in guest mode, not a failure. The test confirms the SDK transport works, guest mode exists, and no authentication is needed for basic API access.
-
-### Version verification without full execution
-
-**Challenge:** Document accurate version numbers and commands without executing potentially complex workflows (signing, transactions, deployments).
-
-**Resolution:** Installed packages locally to verify versions exist on npm. Ran CLI `--help` to confirm command structure matches documentation. Explicitly marked all runtime examples as untested with clear notes in the content.
-
-### Rust toolchain scope
-
-**Challenge:** The Rust App guide requires Rust 1.85+, cargo, and potentially GitHub App setup for deployment.
-
-**Resolution:** Documented the Rust workflow from official sources without installing Rust or attempting builds. Marked all Rust examples as untested and clearly noted the deployment requirements.
-
-## What was tested
-
-**Verified:**
-- npm package existence and versions (@aomi-labs/client 0.11.2, @aomi-labs/cli 0.2.0)
-- CLI help command output structure
-- SDK example execution in guest mode (connected successfully, hit expected rate limit)
-- Public documentation accessibility
-- GitHub repository public access
-- Thally project scaffold
-- Thally CLI check validation
-- Production build success
-- Dev server startup and HTTP response
-
-**Not executed (marked as untested in docs):**
-- Completed Agent turn (rate-limited in guest mode)
-- `aomi chat` CLI commands against live API
-- Transaction simulation or signing
-- Wallet connections or authentication
-- Rust App builds or deployments
-- GitHub App installation or deployment workflows
-
-## What was not tested
-
-This workflow validates the content structure and local build. It does not test:
-
-- Live Aomi API responses or Agent behavior
-- SDK example execution with real sessions
-- Transaction simulation or blockchain interaction
-- CLI commands beyond `--help`
-- Rust toolchain installation or plugin compilation
-- GitHub App deployment pipeline
-- Thally Cloud onboarding or managed publishing
-- Repository connection or hosted deployment
-
-Those steps would require API access, wallet connections, Rust installation, and external service integration. The local CLI validation is complete and accurate without them.
-
-## Sources summary
-
-**Public sources used (all accessed November 9, 2026):**
-- aomi.dev (main website)
-- aomi.dev/docs/* (official documentation, multiple pages)
-- github.com/aomi-labs/* (public repositories: aomi, aomi-sdk, docs, skills)
-- npm registry (package version checks)
-
-**What was installed and tested:**
-- @aomi-labs/client (0.11.2) - installed, and the documented guest-mode example was run
-- @aomi-labs/cli (0.2.0) - installed, help command tested
-
-**Private materials:** None. No employer materials, no internal documentation, no private repositories, no proprietary information.
-
-**Invented content:** None. All commands, code samples, and features come from public Aomi documentation. Anything not verified is explicitly marked as untested.
-
-## Package versions
-
-All exact versions:
-- @thallylabs/cli: 2.1.10 (recorded at scaffold time)
-- next: 16.4.1
-- react: 19.2.0
-- typescript: 5.9.3
-- Node.js: v22.23.4
-- npm: 10.9.9
-- @aomi-labs/client: 0.11.2 (verified from npm, guest-mode example run)
-- @aomi-labs/cli: 0.2.0 (verified from npm, help tested only)
-
-Rust SDK documentation references aomi-sdk =5.1.1 but this was not installed or verified locally.
+| Package | Version |
+| --- | --- |
+| Node.js | 22.23.4 |
+| npm | 10.9.9 |
+| next | 16.4.1 |
+| react | 19.2.0 |
+| typescript | 5.9.3 |
+| @aomi-labs/client | 0.11.2 |
+| @aomi-labs/cli | 0.2.0 |

@@ -1,25 +1,28 @@
 # Three observations from building with Thally
 
-## What worked well
+These cover the local workflow: scaffold, writing, `thally check`, `npm run build` and the OpenAPI reference. Thally Cloud publishing isn't covered here.
 
-The Thally CLI scaffold (`create-thally-docs --yes --install`) delivers a complete, immediately buildable project in under 20 seconds. The generated structure is clear: `src/content/*.mdx` for pages, `docs.json` for navigation, and `src/data/site.ts` for identity. The `AGENTS.md` file explains ownership boundaries upfront, which prevented confusion about which files to edit versus which are runtime-managed. The `npx @thallylabs/cli check` command provides fast validation without requiring a full build, catching broken navigation references and missing frontmatter early.
+## 1. The scaffold is fast and the ownership rules are clear
 
-The starter template includes working examples for every component type (Hero, Card, CardGroup), making it straightforward to copy patterns rather than guess at syntax. The build output is detailed enough to debug issues but not so verbose that errors get buried.
+`npx create-thally-docs@latest aomi-docs --yes --install` produced a project that built on the first try in about 19 seconds. The layout is obvious within a minute: pages in `src/content/`, navigation in `docs.json`, identity in `src/data/site.ts`. `AGENTS.md` says up front which files are runtime-owned, which saved me from editing framework code by accident. The component set covers what a developer docs site actually needs (`Steps`, `Tabs`, `CodeGroup`, `AccordionGroup`, Mermaid, video), and frontmatter fields like `navTitle` and `timeEstimate` mean page metadata doesn't leak into the body.
 
-## Where friction appeared
+## 2. The starter assumes a big site, and `check` stops short of links
 
-The starter template is optimized for larger documentation sites with multiple tabs, API references, and changelog sections. For a three-page assessment, this meant removing about eight example pages and collapsing the navigation from four tabs down to one. A `--minimal` or `--small` scaffold flag that generates just introduction, quickstart, and one guide would reduce this editing step for focused evaluations.
+The starter ships with several example tabs, a sample API and changelog pages. For a new product site, the first half hour is deleting things. A `--minimal` flag that scaffolds an introduction, a quickstart and one empty group would cut that out.
 
-The `AGENTS.md` file references checking `starter-release.json` for runtime-owned paths but does not explain what to do when that file's format is unclear or when you are unsure whether a specific file is runtime-owned. For example, `src/mdx/custom-components.tsx` looks like it might be part of the framework, but `AGENTS.md` does not list it explicitly. Clearer guidance on "if you did not create it and it is not in `src/content/` or `docs.json`, leave it alone" would help.
+`thally check` is quick and catches missing navigation entries and frontmatter. Broken internal links and anchors only surface in the agent-readiness report (`/api/agent-readiness` on a running site), and MDX errors only at build time. I wrote a small script to diff every `/path` link against the page list before I found that report. Running the readiness link check inside `thally check` would catch the most common docs regression without starting a server.
 
-The middleware deprecation warning appears on every build and dev server start but `AGENTS.md` says framework internals should not be hand-edited. The warning suggests running a codemod, which conflicts with the ownership guidance. Either the warning should not appear on fresh scaffolds or `AGENTS.md` should explicitly address it.
+The middleware deprecation warning prints on every build. `AGENTS.md` says not to hand-edit framework internals, and `BUILD-WARNINGS.md` explains why the warning stays, but nothing points a new user to that file. One line in the build output linking to it would save a confused search.
 
-## What could improve
+## 3. Untagged OpenAPI specs need a better default, and `overrides` hit a size cap
 
-Document the typical dev server port behavior in the Thally quickstart. The scaffold runs `npm run dev` without noting that Next.js auto-selects an available port when 3000 is occupied. The terminal output is clear, but a note in the scaffold success message ("Your dev server will start on port 3000 or the next available port") would prevent confusion when the URL differs from examples.
+Binding Aomi's OpenAPI document to a tab worked first time and generated 75 endpoint pages with a request builder. But Aomi's spec has no tags or summaries, which is common for generated specs. Every operation lands in one group, titled by its raw `operationId` (`browsePipelineAppOperations`, `describeevmbuild`).
 
-Clarify what the CLI check validates and what it does not. It caught missing navigation entries and confirmed frontmatter completeness, but it did not catch MDX syntax errors or broken internal links until build time. Knowing the check's scope helps set expectations about when to run it versus when to run a full build.
+The documented fix is an `overrides` entry per operation in `docs.json`. For 75 operations that took a script, and it made `docs.json` 16 KB. A comment in the starter's readiness code says managed releases cap the `docs.json` binding at 5 KB, which the [API reference setup guide](https://docs.thally.io/guides/api-reference-setup) doesn't mention. I only found it by reading source. In the end I added tags and summaries to the spec copy, which the same guide tells you not to do.
 
-Add a "validate your content" section to the Thally quickstart that lists the sequence: edit content, run check (fast), fix navigation issues, run build (comprehensive), fix everything else. This would make the workflow explicit rather than something users discover through trial.
+Two changes would remove the problem:
 
-**Note:** These observations reflect only the local Thally CLI scaffold, check, and build workflow. Thally Cloud onboarding, managed publishing, and repository connection remain untested and cannot be assessed.
+- A `groupBy: "path"` setting that groups untagged operations by path prefix (`/v1/agent`, `/v1/pipeline/evm`)
+- Falling back to a humanized `operationId` for the title when there's no `summary`
+
+And `thally check` should warn when `docs.json` is over the managed size limit, before a publish fails.
